@@ -57,3 +57,13 @@ toy_grid <- sf::st_sf(
   ),
   crs = 4326
 )
+
+# disconnected network (2 components, 2 segments, 4 nodes)
+
+toy_disconnected <- sf::st_sf(
+  geometry = sf::st_sfc(
+    sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+    sf::st_linestring(matrix(c(3, 0, 4, 0), ncol = 2, byrow = TRUE))
+  ),
+  crs = 4326
+)

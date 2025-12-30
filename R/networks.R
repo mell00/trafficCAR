@@ -21,9 +21,12 @@ build_network <- function(roads_sf, crs_out = 3857) {
   roads <- sf::st_transform(roads, crs_out)
   roads <- sf::st_cast(roads, "LINESTRING")
 
-  # create node intersections
-  roads <- lwgeom::st_node(roads)
-  roads <- sf::st_cast(roads, "LINESTRING")
+  # node intersections (sf-stable pattern)
+  geom <- sf::st_union(sf::st_geometry(roads))
+  geom <- sf::st_node(geom)
+  geom <- sf::st_cast(geom, "LINESTRING")
+
+  roads <- sf::st_sf(geometry = geom, crs = sf::st_crs(roads))
 
   # create nodes
   nodes <- sf::st_as_sf(sf::st_cast(sf::st_union(roads), "POINT"))

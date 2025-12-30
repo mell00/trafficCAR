@@ -1,3 +1,12 @@
+## Quick interactive plot run in console to check shape
+
+quick_plot <- function(name_of_toy_road){
+  plot(sf::st_geometry(name_of_toy_road), col = "black", lwd = 2)
+  points(sf::st_coordinates(sf::st_cast(toy_roads, "POINT")), pch = 19, col = "red")
+}
+
+## ex: quick_plot(toy_L)
+
 
 # L-shaped network w/ two line segments, three nodes (endpoints + intersection)
 
@@ -19,3 +28,5 @@ toy_T <- sf::st_sf(
   ),
   crs = 4326
 )
+
+

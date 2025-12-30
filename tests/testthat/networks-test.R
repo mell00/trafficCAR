@@ -67,3 +67,41 @@ toy_disconnected <- sf::st_sf(
   ),
   crs = 4326
 )
+
+# freeway with on-ramp (merge)
+
+toy_on_ramp <- sf::st_sf(
+  geometry = sf::st_sfc(
+    # main freeway
+    sf::st_linestring(matrix(c(-3, 0, 3, 0), ncol = 2, byrow = TRUE)),
+
+    # on-ramp
+    sf::st_linestring(matrix(c(
+      -1, -2,
+      -0.5, -1,
+      0, 0
+    ), ncol = 2, byrow = TRUE))
+  ),
+  crs = 4326
+)
+
+# freeway with off-ramp (diverge)
+
+toy_off_ramp <- sf::st_sf(
+  geometry = sf::st_sfc(
+    # main freeway
+    sf::st_linestring(matrix(c(-3, 0, 3, 0), ncol = 2, byrow = TRUE)),
+
+    # off-ramp
+    sf::st_linestring(matrix(c(
+      0, 0,
+      0.5, 1,
+      1, 2
+    ), ncol = 2, byrow = TRUE))
+  ),
+  crs = 4326
+)
+
+
+
+

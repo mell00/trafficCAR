@@ -6,7 +6,7 @@ library(osmdata)
 library(sf)
 
 # parameters
-place_name <- "Los Angeles, California"
+place_name <- "Navasota, Texas"
 out_file <- "inst/extdata/roads.geojson"
 
 # download

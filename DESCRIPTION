@@ -1,16 +1,19 @@
 Package: trafficCAR
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Conditional Autoregressive (CAR) Models for Traffic Flow on Road Networks
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      "Madison", "Ell",
+      email = "mell@stat.tamu.edu",
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
+Description: Tools for simulating and modeling traffic flow on road networks
+    using spatial conditional autoregressive (CAR) models. The package
+    represents road systems as graphs derived from OpenStreetMap data and
+    supports network-based spatial dependence, basic preprocessing, and
+    visualization for spatio-temporal traffic analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

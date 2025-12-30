@@ -22,7 +22,8 @@ Imports:
     igraph,
     Matrix,
     osmdata,
-    ggplot2
+    ggplot2,
+    lwgeom,
 Suggests: 
     knitr,
     rmarkdown,

@@ -85,18 +85,22 @@ toy_on_ramp <- sf::st_sf(
   crs = 4326
 )
 
-# freeway with off-ramp (diverge)
+# freeway with off-ramp (diverge); NEEDS FIX
 
 toy_off_ramp <- sf::st_sf(
   geometry = sf::st_sfc(
     # main freeway
-    sf::st_linestring(matrix(c(-3, 0, 3, 0), ncol = 2, byrow = TRUE)),
+    sf::st_linestring(matrix(c(
+      -5, 0,
+      0, 0,
+      5, 0
+    ), ncol = 2, byrow = TRUE)),
 
     # off-ramp
     sf::st_linestring(matrix(c(
       0, 0,
-      0.5, 1,
-      1, 2
+      1, 0.4,
+      2, 0.8
     ), ncol = 2, byrow = TRUE))
   ),
   crs = 4326

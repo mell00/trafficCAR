@@ -41,3 +41,19 @@ toy_square <- sf::st_sf(
   ),
   crs = 4326
 )
+
+# 2x2 grid network (6 segments, 9 nodes, planar grid)
+
+toy_grid <- sf::st_sf(
+  geometry = sf::st_sfc(
+    # horizontal
+    sf::st_linestring(matrix(c(0, 0, 2, 0), ncol = 2, byrow = TRUE)),
+    sf::st_linestring(matrix(c(0, 1, 2, 1), ncol = 2, byrow = TRUE)),
+    sf::st_linestring(matrix(c(0, 2, 2, 2), ncol = 2, byrow = TRUE)),
+    # vertical
+    sf::st_linestring(matrix(c(0, 0, 0, 2), ncol = 2, byrow = TRUE)),
+    sf::st_linestring(matrix(c(1, 0, 1, 2), ncol = 2, byrow = TRUE)),
+    sf::st_linestring(matrix(c(2, 0, 2, 2), ncol = 2, byrow = TRUE))
+  ),
+  crs = 4326
+)

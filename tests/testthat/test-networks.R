@@ -19,4 +19,13 @@ test_that("L-shaped network has expected topology", {
   expect_equal(deg, c(1, 1, 2))
 })
 
+test_that("T-junction has expected degree distribution", {
+  net <- build_network(toy_T)
 
+  expect_equal(nrow(net$nodes), 4)
+  expect_equal(nrow(net$edges), 3)
+  expect_true(igraph::is_connected(net$graph))
+
+  deg <- sort(igraph::degree(net$graph))
+  expect_equal(deg, c(1, 1, 1, 3))
+})

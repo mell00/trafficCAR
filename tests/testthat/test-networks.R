@@ -43,3 +43,16 @@ test_that("square network is a 4-cycle", {
   gth <- igraph::girth(net$graph)$girth
   expect_equal(gth, 4)
 })
+
+test_that("2x2 grid network has expected node/edge counts", {
+  net <- build_network(toy_grid)
+
+  expect_equal(nrow(net$nodes), 9)
+  expect_equal(nrow(net$edges), 12)
+  expect_true(igraph::is_connected(net$graph))
+
+  deg <- igraph::degree(net$graph)
+  expect_equal(sum(deg == 4), 1)  # center
+  expect_equal(sum(deg == 3), 4)  # edge centers
+  expect_equal(sum(deg == 2), 4)  # corners
+})

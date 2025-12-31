@@ -106,6 +106,34 @@ toy_off_ramp <- sf::st_sf(
   crs = 4326
 )
 
+# Partial cloverleaf interchange (2 ramps + 2 crossing freeways)
+# testing crossings, mixed open/closed ramps of moderate complexity
+
+toy_partial_cloverleaf <- sf::st_sf(
+  geometry = sf::st_sfc(
+    # horizontal freeway
+    sf::st_linestring(matrix(c(-3, 0, 3, 0), ncol = 2, byrow = TRUE)),
+
+    # vertical freeway
+    sf::st_linestring(matrix(c(0, -3, 0, 3), ncol = 2, byrow = TRUE)),
+
+    # northeast ramp (quarter loop)
+    sf::st_linestring(matrix(c(
+      1, 0,
+      2, 1,
+      1, 2
+    ), ncol = 2, byrow = TRUE)),
+
+    # southwest ramp (quarter loop)
+    sf::st_linestring(matrix(c(
+      -1, 0,
+      -2, -1,
+      -1, -2
+    ), ncol = 2, byrow = TRUE))
+  ),
+  crs = 4326
+)
+
 
 
 

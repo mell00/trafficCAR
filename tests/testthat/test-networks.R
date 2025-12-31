@@ -64,3 +64,11 @@ test_that("disconnected network is not connected", {
   expect_equal(nrow(net$edges), 2)
   expect_false(igraph::is_connected(net$graph))
 })
+
+test_that("on-ramp is connected and has a merge node", {
+  net <- build_network(toy_on_ramp)
+
+  expect_true(igraph::is_connected(net$graph))
+  expect_true(any(igraph::degree(net$graph) == 3))
+  expect_true(any(igraph::degree(net$graph) == 1)) # ramp endpoint
+})

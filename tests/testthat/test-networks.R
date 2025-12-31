@@ -72,3 +72,19 @@ test_that("on-ramp is connected and has a merge node", {
   expect_true(any(igraph::degree(net$graph) == 3))
   expect_true(any(igraph::degree(net$graph) == 1)) # ramp endpoint
 })
+
+test_that("adjacency matrix is square, symmetric, and matches graph", {
+  net <- build_network(toy_grid)
+
+  A <- net$A
+  n <- nrow(net$nodes)
+
+  expect_equal(nrow(A), n)
+  expect_equal(ncol(A), n)
+  expect_equal(A, Matrix::t(A))
+
+  # degrees from adjacency equal igraph degrees
+  deg_A <- as.numeric(Matrix::rowSums(A))
+  deg_g <- as.numeric(igraph::degree(net$graph))
+  expect_equal(sort(deg_A), sort(deg_g))
+})

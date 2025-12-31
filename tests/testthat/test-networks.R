@@ -29,3 +29,17 @@ test_that("T-junction has expected degree distribution", {
   deg <- sort(igraph::degree(net$graph))
   expect_equal(deg, c(1, 1, 1, 3))
 })
+
+test_that("square network is a 4-cycle", {
+  net <- build_network(toy_square)
+
+  expect_equal(nrow(net$nodes), 4)
+  expect_equal(nrow(net$edges), 4)
+  expect_true(igraph::is_connected(net$graph))
+
+  deg <- igraph::degree(net$graph)
+  expect_true(all(deg == 2))
+
+  gth <- igraph::girth(net$graph)$girth
+  expect_equal(gth, 4)
+})

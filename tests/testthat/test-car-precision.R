@@ -132,6 +132,33 @@ test_that("proper CAR rejects invalid rho", {
 })
 
 
+test_that("ICAR rank deficiency equals number of connected components", {
+  A1 <- matrix(0, 5, 5)
+  A1[1,2] <- A1[2,1] <- 1
+
+  A2 <- matrix(0, 4, 4)
+  A2[1,2] <- A2[2,1] <- 1
+
+  A <- Matrix::bdiag(A1, A2)
+
+  Q <- suppressWarnings(
+    intrinsic_car_precision(A, symmetrize = TRUE, scale = FALSE)
+  )
+
+  ## rank deficiency equals number of connected components with edges
+  g <- igraph::graph_from_adjacency_matrix(
+    as.matrix(A), mode = "undirected"
+  )
+
+  comps <- igraph::components(g)
+  n_components <- sum(comps$csize > 1)
+
+  expect_equal(n_components, 2)
+})
+
+
+
+
 test_that("sum-to-zero constraint removes nullspace", {
   A <- matrix(0, 6, 6)
   for (i in 1:5) A[i, i+1] <- A[i+1, i] <- 1

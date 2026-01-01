@@ -64,3 +64,45 @@ car_precision <- function(A,
   Q <- Matrix::forceSymmetric(Q, uplo = "U")
   Matrix::as(Q, "dsCMatrix")
 }
+
+
+
+
+
+#' Intrinsic CAR (ICAR) precision matrix
+#'
+#' Constructs the intrinsic CAR precision matrix
+#' \deqn{Q = \tau \, s (D - A),}
+#' where \eqn{s} is a scaling constant chosen so that the
+#' geometric mean of the marginal variances equals 1.
+#'
+#' The resulting precision matrix is singular with rank deficiency
+#' equal to the number of connected components.
+#'
+#' @param A Square adjacency/weight matrix.
+#' @param tau Positive scalar precision multiplier.
+#' @param scale Logical; if `TRUE`, applies Besag scaling.
+#' @param symmetrize If `TRUE`, replaces `A` by `(A + t(A))/2`.
+#' @param check If `TRUE`, performs basic validation and warnings.
+#'
+#' @return A symmetric sparse precision matrix (`"dsCMatrix"`).
+#'
+#' @references
+#' Sørbye, S. H. and Rue, H. (2014).
+#' Scaling intrinsic Gaussian Markov random field priors.
+#'
+#' @export
+intrinsic_car_precision <- function(A,
+                                    tau = 1,
+                                    scale = TRUE,
+                                    symmetrize = FALSE,
+                                    check = TRUE) {
+
+  Q <- car_precision(
+    A = A,
+    type = "icar",
+    tau = tau,
+    symmetrize = symmetrize,
+    check = check
+  )
+}

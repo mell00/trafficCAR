@@ -19,9 +19,16 @@ as_sparse_adjacency <- function(A, symmetrize = FALSE, check = TRUE) {
     stop("`A` must be a square (n x n) matrix.")
   }
 
-  # Coerce to sparse numeric matrix (does not require a library() call)
-  A <- Matrix::Matrix(A, sparse = TRUE)
-  storage.mode(A@x) <- "double"
+  # Coerce to sparse numeric matrix
+  A <- Matrix::Matrix(as.matrix(A), sparse = TRUE)
+  A <- methods::as(
+    methods::as(
+      methods::as(A, "dMatrix"),
+      "generalMatrix"
+    ),
+    "CsparseMatrix"
+  )
+
 
   if (check && anyNA(A@x)) stop("`A` contains NA values; please remove/replace them.")
   if (symmetrize) {

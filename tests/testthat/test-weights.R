@@ -101,3 +101,19 @@ test_that("symmetry is not silently bypassed for large matrices", {
   )
 })
 
+
+test_that("row_standardize_weights handles mixed degrees and preserves sparsity", {
+  A <- Matrix::sparseMatrix(
+    i = c(1,1,1, 2,3,4,5,6),
+    j = c(2,3,4, 1,1,1,1,1),
+    x = 1,
+    dims = c(6,6)
+  )
+  A <- as_sparse_adjacency(A, symmetrize = TRUE, check = FALSE)
+
+  W <- row_standardize_weights(A, zero_policy = "keep")
+  rs <- Matrix::rowSums(W)
+  expect_true(all(abs(rs[rs > 0] - 1) < 1e-12))
+  expect_s4_class(W, "dgCMatrix")
+})
+

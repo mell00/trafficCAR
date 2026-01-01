@@ -139,3 +139,9 @@ test_that("as_sparse_adjacency returns dgCMatrix as documented", {
   expect_s4_class(B, "dgCMatrix")
 })
 
+
+test_that("isolated nodes are preserved", {
+  A <- matrix(0, 3, 3)
+  B <- as_sparse_adjacency(A)
+  expect_equal(Matrix::rowSums(B), c(0, 0, 0))
+})

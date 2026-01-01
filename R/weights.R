@@ -15,6 +15,7 @@ as_sparse_adjacency <- function(A, symmetrize = FALSE, check = TRUE) {
 
   nr <- nrow(A)
   nc <- ncol(A)
+  if (nr == 0L) stop("`A` must have positive dimension (n > 0).")
   if (is.null(nr) || is.null(nc) || nr != nc) {
     stop("`A` must be a square (n x n) matrix.")
   }

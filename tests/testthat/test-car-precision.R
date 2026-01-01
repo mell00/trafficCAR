@@ -120,3 +120,14 @@ test_that("heterogeneous connected components scale correctly", {
 
   expect_true(all(is.finite(Matrix::diag(Q))))
 })
+
+test_that("proper CAR rejects invalid rho", {
+  A <- matrix(0, 5, 5)
+  for (i in 1:4) A[i, i+1] <- A[i+1, i] <- 1
+
+  expect_error(
+    car_precision(A, type = "proper", rho = 1, symmetrize = TRUE),
+    "admissible"
+  )
+})
+

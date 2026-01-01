@@ -153,5 +153,19 @@ icar_rank_deficiency <- function(Q, tol = 1e-8) {
   sum(ev < tol)
 }
 
+#' Apply sum-to-zero constraint to ICAR precision
+#'
+#' Projects onto the subspace orthogonal to the constant vector.
+#'
+#' @param Q ICAR precision matrix
+#'
+#' @return Constrained precision matrix
+#' @export
+icar_sum_to_zero <- function(Q) {
+  n <- nrow(Q)
+  C <- diag(n) - matrix(1 / n, n, n)
+  Qc <- C %*% Q %*% C
+  Matrix::forceSymmetric(Matrix::Matrix(Qc, sparse = TRUE))
+}
 
 

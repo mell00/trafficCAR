@@ -33,4 +33,13 @@ test_that("diagonal is forced to zero", {
 })
 
 
+test_that("as_sparse_adjacency rejects non-finite values", {
+  A <- matrix(c(0, Inf, Inf, 0), 2, 2)
+  expect_error(as_sparse_adjacency(A), "finite|Inf|infinite", ignore.case = TRUE)
+
+  B <- matrix(c(0, NaN, NaN, 0), 2, 2)
+  expect_error(as_sparse_adjacency(B), "NA|NaN", ignore.case = TRUE)
+})
+
+
 

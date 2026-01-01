@@ -131,3 +131,22 @@ test_that("proper CAR rejects invalid rho", {
   )
 })
 
+
+test_that("sum-to-zero constraint removes nullspace", {
+  A <- matrix(0, 6, 6)
+  for (i in 1:5) A[i, i+1] <- A[i+1, i] <- 1
+
+  Q <- intrinsic_car_precision(
+    A,
+    scale = FALSE,
+    symmetrize = TRUE
+  )
+
+  Qc <- icar_sum_to_zero(Q)
+
+  ev <- eigen(as.matrix(Qc), symmetric = TRUE)$values
+  expect_true(all(ev > 0))
+})
+
+
+

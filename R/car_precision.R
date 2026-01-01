@@ -62,7 +62,7 @@ car_precision <- function(A,
   }
 
   Q <- Matrix::forceSymmetric(Q, uplo = "U")
-  Matrix::as(Q, "dsCMatrix")
+  methods::as(Q, "dsCMatrix")
 }
 
 
@@ -110,14 +110,19 @@ intrinsic_car_precision <- function(A,
     return(Q)
   }
 
-  ## Besag scaling procedure:
-  ## Compute generalized inverse diagonal via sparse Cholesky
-  cholQ <- Matrix::Cholesky(Q, super = TRUE, Imult = 0)
+  ## Besag (geometric mean) scaling
+  cholQ <- tryCatch(
+    Matrix::Cholesky(Q, super = TRUE, Imult = 0),
+    error = function(e) NULL
+  )
+
+  if (is.null(cholQ)) {
+    warning("scaling failed: Cholesky factorization unsuccessful")
+    return(Q)
+  }
 
   ## diagonal of the generalized inverse
-  Vinv_diag <- Matrix::diag(Matrix::solve(cholQ, system = "A"))
-
-  ## remove infinities from disconnected components
+  Vinv_diag <- diag(Matrix::solve(cholQ, system = "A"))
   Vinv_diag <- Vinv_diag[is.finite(Vinv_diag)]
 
   if (length(Vinv_diag) == 0L) {

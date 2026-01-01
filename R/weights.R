@@ -48,5 +48,5 @@ as_sparse_adjacency <- function(A, symmetrize = FALSE, check = TRUE) {
     }
   }
 
-  Matrix::as(A, "dgCMatrix")
+  methods::as(A, "dgCMatrix")
 }

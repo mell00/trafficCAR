@@ -24,6 +24,7 @@ Imports:
     osmdata,
     ggplot2,
     lwgeom,
+    methods
 Suggests: 
     knitr,
     rmarkdown,

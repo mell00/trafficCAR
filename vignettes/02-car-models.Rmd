@@ -19,17 +19,33 @@ Q = \tau (D - A)
 - Improper prior
 - Requires constraints (e.g. sum-to-zero)
 
+The ICAR model corresponds to the boundary case \(\rho = 1\) and intentionally
+produces a singular precision matrix.
+
 ### Proper CAR model
 
 \[
 Q = \tau (D - \rho A)
 \]
 
-- Positive definite if \(|\rho| < 1 / \lambda_{\max}(D^{-1/2} A D^{-1/2})\)
-- Interpretable spatial dependence parameter
-- Reduces to ICAR as \(\rho \to 1\)
+For the precision matrix to be positive definite, a necessary condition is
+
+\[
+|\rho| < 1.
+\]
+
+This constraint is enforced by `trafficCAR::car_precision()` when
+`type = "proper"` and `check = TRUE`. Values of \(|\rho| \ge 1\) result in a
+singular or indefinite precision matrix and are therefore rejected.
+
+More refined bounds based on the spectrum of
+\(D^{-1/2} A D^{-1/2}\) exist, but the condition \(|\rho| < 1\) is a standard and
+robust requirement in applied CAR modeling.
+
+As \(\rho \to 1\), the proper CAR model approaches the ICAR model.
 
 ### Scaling (Sørbye–Rue)
 
-ICAR precision is scaled so that the geometric mean of marginal variances is 1,
-making \(\tau\) comparable across graphs.
+ICAR precision matrices are scaled so that the geometric mean of the marginal
+variances equals 1, making the precision parameter \(\tau\) comparable across
+graphs and resolutions.

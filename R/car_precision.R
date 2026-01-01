@@ -145,3 +145,13 @@ intrinsic_car_precision <- function(A,
 
   Q * s
 }
+
+
+#' @keywords internal
+icar_rank_deficiency <- function(Q, tol = 1e-8) {
+  ev <- eigen(as.matrix(Q), symmetric = TRUE, only.values = TRUE)$values
+  sum(ev < tol)
+}
+
+
+

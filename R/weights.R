@@ -30,24 +30,21 @@ as_sparse_adjacency <- function(A, symmetrize = FALSE, check = TRUE) {
     "CsparseMatrix"
   )
 
-
   if (check) {
     if (any(!is.finite(A@x))) {
       stop("`A` contains non-finite values (NA/NaN/Inf); please remove/replace them.")
     }
   }
+
   if (symmetrize) {
     A <- (A + Matrix::t(A)) / 2
   } else if (check) {
     # symmetry check on a small random sample of entries could miss issues;
     # instead do an exact check for small matrices, otherwise skip
-    if (nr <= 2000L) {
-      if (!isTRUE(all.equal(A, Matrix::t(A), tolerance = 0))) {
-        stop("`A` must be symmetric (or set `symmetrize = TRUE`).")
-      }
+    if (!Matrix::isSymmetric(A, tol = 0)) {
+      stop("`A` must be symmetric (or set `symmetrize = TRUE`).")
     }
   }
-
 
   # ensure diagonal is exactly zero
   Matrix::diag(A) <- 0
@@ -61,7 +58,8 @@ as_sparse_adjacency <- function(A, symmetrize = FALSE, check = TRUE) {
     }
   }
 
-  methods::as(A, "generalMatrix")
+  # return numeric sparse adjacency matrix
+  A
 }
 
 

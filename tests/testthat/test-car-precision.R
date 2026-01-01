@@ -175,5 +175,47 @@ test_that("sum-to-zero constraint removes nullspace", {
   expect_true(all(ev > 0))
 })
 
+test_that("ICAR construction is not slower than proper CAR", {
 
+  skip_if_not_installed("microbenchmark")
+
+  set.seed(1)
+  n <- 300
+
+  A <- Matrix::rsparsematrix(n, n, density = 0.01)
+  A <- abs(A)
+  A[A > 0] <- 1
+  diag(A) <- 0
+
+  ## ensure no isolated nodes (add chain structure)
+  for (i in 1:(n - 1)) {
+    A[i, i + 1] <- 1
+    A[i + 1, i] <- 1
+  }
+
+  ## warm-up
+  suppressWarnings(
+    intrinsic_car_precision(A, symmetrize = TRUE, scale = FALSE)
+  )
+  suppressWarnings(
+    car_precision(A, type = "proper", rho = 0.5, symmetrize = TRUE)
+  )
+
+  bm <- suppressWarnings(microbenchmark::microbenchmark(
+    ICAR = suppressWarnings(
+      intrinsic_car_precision(A, symmetrize = TRUE, scale = FALSE)
+    ),
+    CAR = suppressWarnings(
+      car_precision(A, type = "proper", rho = 0.5, symmetrize = TRUE)
+    ),
+    times = 10L
+  ))
+
+  med <- stats::aggregate(time ~ expr, bm, median)
+
+  t_icar <- med$time[med$expr == "ICAR"]
+  t_car  <- med$time[med$expr == "CAR"]
+
+  expect_lte(t_icar, 1.2 * t_car)
+})
 

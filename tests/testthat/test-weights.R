@@ -25,3 +25,12 @@ test_that("as_sparse_adjacency coerces to numeric sparse matrix", {
   expect_type(B@x, "double")
 })
 
+
+test_that("diagonal is forced to zero", {
+  A <- matrix(c(1, 1, 1, 1), 2, 2)
+  B <- as_sparse_adjacency(A, symmetrize = TRUE)
+  expect_equal(Matrix::diag(B), c(0, 0))
+})
+
+
+

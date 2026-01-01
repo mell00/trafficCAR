@@ -52,6 +52,16 @@ test_that("as_sparse_adjacency drops explicitly stored zeros", {
 })
 
 
+test_that("degenerate sizes behave consistently", {
+  A0 <- matrix(numeric(), 0, 0)
+  expect_error(as_sparse_adjacency(A0), "square|0", ignore.case = TRUE)
+
+  A1 <- matrix(5, 1, 1)
+  B1 <- as_sparse_adjacency(A1, check = FALSE)
+  expect_equal(dim(B1), c(1L, 1L))
+  expect_equal(Matrix::diag(B1), 0)
+  expect_equal(length(B1@x), 0L)
+})
 
 
 

@@ -132,3 +132,10 @@ test_that("row-standardized weights satisfy key invariants", {
   expect_true(all(abs(rs - 1) < 1e-12))
 })
 
+
+test_that("as_sparse_adjacency returns dgCMatrix as documented", {
+  A <- matrix(c(0,1,1,0), 2, 2)
+  B <- as_sparse_adjacency(A, symmetrize = TRUE)
+  expect_s4_class(B, "dgCMatrix")
+})
+

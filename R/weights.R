@@ -62,3 +62,27 @@ degree_matrix <- function(A) {
   d <- Matrix::rowSums(A)
   Matrix::Diagonal(x = as.numeric(d))
 }
+
+
+
+#' Row-standardize adjacency matrix
+#'
+#' @param A Sparse adjacency matrix.
+#' @param zero_policy What to do with zero-degree nodes.
+#' @return Sparse row-standardized weight matrix.
+#' @keywords internal
+row_standardize_weights <- function(A, zero_policy = c("keep", "error")) {
+  zero_policy <- match.arg(zero_policy)
+  d <- Matrix::rowSums(A)
+
+  if (any(d == 0)) {
+    if (zero_policy == "error") {
+      stop("Adjacency contains isolated nodes (degree 0).")
+    }
+  }
+
+  Dinv <- Matrix::Diagonal(x = ifelse(d > 0, 1 / d, 0))
+  Dinv %*% A
+}
+
+

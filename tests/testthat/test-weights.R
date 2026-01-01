@@ -117,3 +117,18 @@ test_that("row_standardize_weights handles mixed degrees and preserves sparsity"
   expect_s4_class(W, "dgCMatrix")
 })
 
+
+test_that("row-standardized weights satisfy key invariants", {
+  A <- matrix(c(0, 2, 0,
+                2, 0, 1,
+                0, 1, 0), 3, 3)
+
+  W <- weights_from_adjacency(A, style = "row-standardized", symmetrize = TRUE)
+
+  expect_equal(Matrix::diag(W), c(0,0,0))
+  expect_true(all(is.finite(W@x)))
+  expect_true(all(W@x >= 0))
+  rs <- Matrix::rowSums(W)
+  expect_true(all(abs(rs - 1) < 1e-12))
+})
+

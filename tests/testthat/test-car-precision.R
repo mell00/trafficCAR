@@ -77,3 +77,27 @@ test_that("large sparse graph preserves sparsity", {
 
   expect_lt(length(Q@x), n * 20)
 })
+
+
+test_that("permutation of nodes leaves spectrum invariant", {
+  n <- 40
+  A <- matrix(0, n, n)
+  for (i in 1:(n - 1)) {
+    A[i, i + 1] <- A[i + 1, i] <- 1
+  }
+
+  perm <- sample(n)
+  A_perm <- A[perm, perm]
+
+  Q1 <- suppressWarnings(
+    intrinsic_car_precision(A, scale = TRUE, symmetrize = TRUE)
+  )
+  Q2 <- suppressWarnings(
+    intrinsic_car_precision(A_perm, scale = TRUE, symmetrize = TRUE)
+  )
+
+  ev1 <- sort(Re(eigen(as.matrix(Q1), symmetric = TRUE)$values))
+  ev2 <- sort(Re(eigen(as.matrix(Q2), symmetric = TRUE)$values))
+
+  expect_equal(ev1, ev2, tolerance = 1e-8)
+})

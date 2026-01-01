@@ -50,3 +50,15 @@ as_sparse_adjacency <- function(A, symmetrize = FALSE, check = TRUE) {
 
   methods::as(A, "generalMatrix")
 }
+
+
+
+#' Degree matrix from adjacency
+#'
+#' @param A Sparse symmetric adjacency matrix.
+#' @return Diagonal sparse matrix of row sums.
+#' @keywords internal
+degree_matrix <- function(A) {
+  d <- Matrix::rowSums(A)
+  Matrix::Diagonal(x = as.numeric(d))
+}

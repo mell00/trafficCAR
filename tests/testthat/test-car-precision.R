@@ -25,3 +25,21 @@ test_that("proper CAR behaves near the ICAR boundary", {
   expect_true(all(is.finite(Matrix::diag(Q1))))
   expect_gt(kappa(as.matrix(Q1)), kappa(as.matrix(Q2)))
 })
+
+test_that("high-degree hubs do not break construction", {
+  n <- 30
+  A <- matrix(0, n, n)
+  A[1, 2:n] <- 1
+  A[2:n, 1] <- 1
+
+  Q <- suppressWarnings(
+    intrinsic_car_precision(
+      A,
+      scale = TRUE,
+      symmetrize = TRUE
+    )
+  )
+
+  expect_s4_class(Q, "dsCMatrix")
+  expect_true(Matrix::isSymmetric(Q))
+})

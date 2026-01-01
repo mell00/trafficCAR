@@ -103,19 +103,11 @@ car_precision <- function(A,
 #' Scaling intrinsic Gaussian Markov random field priors.
 #'
 #' @export
-intrinsic_car_precision <- function(A,
-                                    tau = 1,
-                                    scale = TRUE,
-                                    symmetrize = FALSE,
+intrinsic_car_precision <- function(A, tau = 1, scale = TRUE, symmetrize = FALSE,
                                     check = TRUE) {
 
-  Q <- car_precision(
-    A = A,
-    type = "icar",
-    tau = tau,
-    symmetrize = symmetrize,
-    check = check
-  )
+  Q <- car_precision(A = A, type = "icar", tau = tau, symmetrize = symmetrize,
+    check = check)
 
   if (!scale) {
     return(Q)

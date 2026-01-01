@@ -2,3 +2,6 @@
 
 export(build_network)
 export(car_precision)
+export(icar_sum_to_zero)
+export(intrinsic_car_precision)
+export(weights_from_adjacency)

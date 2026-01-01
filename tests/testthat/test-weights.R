@@ -15,3 +15,13 @@ test_that("as_sparse_adjacency rejects NA values", {
   A <- matrix(c(0, 1, NA, 0), 2, 2)
   expect_error(as_sparse_adjacency(A))
 })
+
+
+test_that("as_sparse_adjacency coerces to numeric sparse matrix", {
+  A <- matrix(c(TRUE, FALSE, FALSE, TRUE), 2, 2)
+  B <- as_sparse_adjacency(A, symmetrize = TRUE)
+
+  expect_s4_class(B, "dgCMatrix")
+  expect_type(B@x, "double")
+})
+

@@ -1,0 +1,35 @@
+---
+title: "02-car-models"
+output: html_document
+---
+
+## Conditional autoregressive (CAR) models
+
+Let \(A\) be the adjacency matrix of a graph and
+\(D = \mathrm{diag}(A \mathbf{1})\).
+
+### ICAR model
+
+\[
+Q = \tau (D - A)
+\]
+
+- Singular
+- Rank deficiency equals number of connected components
+- Improper prior
+- Requires constraints (e.g. sum-to-zero)
+
+### Proper CAR model
+
+\[
+Q = \tau (D - \rho A)
+\]
+
+- Positive definite if \(|\rho| < 1 / \lambda_{\max}(D^{-1/2} A D^{-1/2})\)
+- Interpretable spatial dependence parameter
+- Reduces to ICAR as \(\rho \to 1\)
+
+### Scaling (Sørbye–Rue)
+
+ICAR precision is scaled so that the geometric mean of marginal variances is 1,
+making \(\tau\) comparable across graphs.

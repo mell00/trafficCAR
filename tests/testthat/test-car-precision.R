@@ -101,3 +101,22 @@ test_that("permutation of nodes leaves spectrum invariant", {
 
   expect_equal(ev1, ev2, tolerance = 1e-8)
 })
+
+
+test_that("heterogeneous connected components scale correctly", {
+  ## chain + star
+  A1 <- matrix(0, 10, 10)
+  for (i in 1:9) {
+    A1[i, i + 1] <- A1[i + 1, i] <- 1
+  }
+
+  A2 <- matrix(0, 6, 6)
+  A2[1, 2:6] <- 1
+  A2[2:6, 1] <- 1
+
+  A <- Matrix::bdiag(A1, A2)
+
+  Q <- suppressWarnings(intrinsic_car_precision(A, scale = TRUE, symmetrize = TRUE))
+
+  expect_true(all(is.finite(Matrix::diag(Q))))
+})

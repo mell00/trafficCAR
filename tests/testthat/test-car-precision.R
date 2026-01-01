@@ -43,3 +43,17 @@ test_that("high-degree hubs do not break construction", {
   expect_s4_class(Q, "dsCMatrix")
   expect_true(Matrix::isSymmetric(Q))
 })
+
+
+test_that("non-symmetric adjacency is symmetrized correctly", {
+  A <- matrix(0, 5, 5)
+  A[1, 2] <- 1
+  A[2, 3] <- 1
+
+  Q <- suppressWarnings(
+    car_precision(A, symmetrize = TRUE)
+  )
+
+  expect_true(Matrix::isSymmetric(Q))
+})
+

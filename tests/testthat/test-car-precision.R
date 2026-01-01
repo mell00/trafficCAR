@@ -198,6 +198,41 @@ test_that("isolated nodes: proper CAR errors, ICAR warns", {
 })
 
 
+test_that("ICAR nullity equals number of connected components", {
+  # component 1: chain of length 4
+  A1 <- matrix(0, 4, 4)
+  for (i in 1:3) A1[i, i+1] <- A1[i+1, i] <- 1
+
+  # component 2: triangle
+  A2 <- matrix(0, 3, 3)
+  A2[1,2] <- A2[2,1] <- 1
+  A2[2,3] <- A2[3,2] <- 1
+  A2[1,3] <- A2[3,1] <- 1
+
+  # component 3: isolated node
+  A3 <- matrix(0, 1, 1)
+
+  A <- Matrix::bdiag(A1, A2, A3)
+
+  Q <- suppressWarnings(
+    car_precision(A, type = "icar", tau = 1, symmetrize = TRUE, check = TRUE)
+  )
+
+  # number of connected components (including singleton isolate)
+  g <- igraph::graph_from_adjacency_matrix(as.matrix(A), mode = "undirected")
+  n_comp <- igraph::components(g)$no
+  expect_equal(n_comp, 3)
+
+  # eigenvalues for small n; nullity = count near zero
+  ev <- eigen(as.matrix(Q), symmetric = TRUE, only.values = TRUE)$values
+  tol <- 1e-8 * max(1, max(abs(ev)))
+  nullity <- sum(abs(ev) <= tol)
+
+  expect_equal(nullity, n_comp)
+})
+
+
+
 test_that("ICAR construction is not slower than proper CAR", {
 
   skip_if_not_installed("microbenchmark")

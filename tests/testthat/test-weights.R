@@ -64,4 +64,15 @@ test_that("degenerate sizes behave consistently", {
 })
 
 
+test_that("logical and integer inputs end up numeric sparse", {
+  Al <- matrix(c(TRUE, FALSE, FALSE, TRUE), 2, 2)
+  Bl <- as_sparse_adjacency(Al, symmetrize = TRUE)
+  expect_s4_class(Bl, "dgCMatrix")
+  expect_true(is.double(Bl@x))
+
+  Ai <- matrix(c(0L, 2L, 2L, 0L), 2, 2)
+  Bi <- as_sparse_adjacency(Ai, symmetrize = TRUE)
+  expect_s4_class(Bi, "dgCMatrix")
+  expect_equal(Bi[1,2], 2)
+})
 

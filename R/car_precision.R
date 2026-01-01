@@ -148,9 +148,9 @@ intrinsic_car_precision <- function(A,
 
 
 #' @keywords internal
-icar_rank_deficiency <- function(Q, tol = 1e-8) {
-  ev <- eigen(as.matrix(Q), symmetric = TRUE, only.values = TRUE)$values
-  sum(ev < tol)
+icar_rank_deficiency <- function(A) {
+  g <- igraph::graph_from_adjacency_matrix(as.matrix(A), mode = "undirected")
+  sum(igraph::components(g)$csize > 1)
 }
 
 #' Apply sum-to-zero constraint to ICAR precision

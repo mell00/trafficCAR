@@ -175,6 +175,29 @@ test_that("sum-to-zero constraint removes nullspace", {
   expect_true(all(ev > 0))
 })
 
+
+test_that("isolated nodes: proper CAR errors, ICAR warns", {
+  n <- 6
+  A <- matrix(0, n, n)
+  for (i in 1:(n - 2)) {
+    A[i, i + 1] <- A[i + 1, i] <- 1
+  }
+  # node 6 isolated
+
+  expect_warning(
+    car_precision(A, type = "icar", tau = 1, symmetrize = TRUE, check = TRUE),
+    "isolated node",
+    fixed = FALSE
+  )
+
+  expect_error(
+    car_precision(A, type = "proper", rho = 0.5, tau = 1, symmetrize = TRUE, check = TRUE),
+    "isolated",
+    fixed = FALSE
+  )
+})
+
+
 test_that("ICAR construction is not slower than proper CAR", {
 
   skip_if_not_installed("microbenchmark")

@@ -57,3 +57,23 @@ test_that("non-symmetric adjacency is symmetrized correctly", {
   expect_true(Matrix::isSymmetric(Q))
 })
 
+
+test_that("large sparse graph preserves sparsity", {
+  set.seed(1)
+  n <- 200
+
+  A <- Matrix::rsparsematrix(n, n, density = 0.01)
+  A <- abs(A)
+  A[A > 0] <- 1
+  diag(A) <- 0
+
+  Q <- suppressWarnings(
+    car_precision(
+      A,
+      type = "icar",
+      symmetrize = TRUE
+    )
+  )
+
+  expect_lt(length(Q@x), n * 20)
+})

@@ -42,4 +42,16 @@ test_that("as_sparse_adjacency rejects non-finite values", {
 })
 
 
+test_that("as_sparse_adjacency drops explicitly stored zeros", {
+  A <- Matrix::sparseMatrix(
+    i = c(1, 2), j = c(2, 1), x = c(0, 0),
+    dims = c(2, 2)
+  )
+  B <- as_sparse_adjacency(A, symmetrize = FALSE, check = FALSE)
+  expect_equal(length(B@x), 0L)
+})
+
+
+
+
 

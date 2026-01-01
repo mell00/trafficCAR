@@ -76,3 +76,17 @@ test_that("logical and integer inputs end up numeric sparse", {
   expect_equal(Bi[1,2], 2)
 })
 
+
+test_that("handles extreme magnitudes without densifying", {
+  big <- .Machine$double.xmax / 4
+  small <- .Machine$double.xmin * 4
+
+  A <- matrix(c(0, big, big, 0), 2, 2)
+  B <- as_sparse_adjacency(A, symmetrize = TRUE, check = FALSE)
+  expect_equal(B[1,2], big)
+
+  A2 <- matrix(c(0, small, small, 0), 2, 2)
+  B2 <- as_sparse_adjacency(A2, symmetrize = TRUE, check = FALSE)
+  expect_equal(B2[1,2], small)
+})
+

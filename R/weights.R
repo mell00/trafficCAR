@@ -77,7 +77,7 @@ row_standardize_weights <- function(A, zero_policy = c("keep", "error")) {
 
   if (any(d == 0)) {
     if (zero_policy == "error") {
-      stop("Adjacency contains isolated nodes (degree 0).")
+      stop("adjacency contains isolated nodes (degree 0).")
     }
   }
 
@@ -86,3 +86,26 @@ row_standardize_weights <- function(A, zero_policy = c("keep", "error")) {
 }
 
 
+#' Construct spatial weights matrix
+#'
+#' @param A Adjacency matrix.
+#' @param style One of "binary" or "row-standardized".
+#' @param symmetrize Passed to adjacency coercion.
+#'
+#' @return Sparse weight matrix.
+#' @export
+weights_from_adjacency <- function(
+    A,
+    style = c("binary", "row-standardized"),
+    symmetrize = FALSE
+) {
+  style <- match.arg(style)
+
+  A <- as_sparse_adjacency(A, symmetrize = symmetrize)
+
+  if (style == "binary") {
+    return(A)
+  }
+
+  row_standardize_weights(A)
+}

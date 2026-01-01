@@ -30,7 +30,11 @@ as_sparse_adjacency <- function(A, symmetrize = FALSE, check = TRUE) {
   )
 
 
-  if (check && anyNA(A@x)) stop("`A` contains NA values; please remove/replace them.")
+  if (check) {
+    if (any(!is.finite(A@x))) {
+      stop("`A` contains non-finite values (NA/NaN/Inf); please remove/replace them.")
+    }
+  }
   if (symmetrize) {
     A <- (A + Matrix::t(A)) / 2
   } else if (check) {
@@ -42,6 +46,7 @@ as_sparse_adjacency <- function(A, symmetrize = FALSE, check = TRUE) {
       }
     }
   }
+
 
   # ensure diagonal is exactly zero
   Matrix::diag(A) <- 0

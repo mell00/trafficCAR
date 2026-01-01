@@ -40,23 +40,33 @@ car_precision <- function(A,
     stop("`tau` must be a single positive finite number")
   }
 
-  rho_use <- switch(
-    type,
-    icar = 1,
-    proper = {
-      if (!is.numeric(rho) || length(rho) != 1L || !is.finite(rho)) {
-        stop("`rho` must be a single finite number when `type = \"proper\"`.")
-      }
-      rho
+  if (type == "proper") {
+    if (!is.numeric(rho) || length(rho) != 1L || !is.finite(rho)) {
+      stop("`rho` must be a single finite number when `type = \"proper\"`.")
     }
-  )
 
-  d <- Matrix::rowSums(A)
-  if (check && any(d == 0)) {
-    warning("adjacency has isolated node(s) with degree 0; Q will be singular for those components")
+    ## universal admissibility condition
+    if (check && abs(rho) >= 1) {
+      stop("`rho` outside admissible range for proper CAR")
+    }
   }
 
+  d <- Matrix::rowSums(A)
+
+  if (type == "proper" && check && any(d == 0)) {
+    stop("proper CAR not defined for graphs with isolated nodes")
+  }
+
+  if (type == "icar" && check && any(d == 0)) {
+    warning(
+      "adjacency has isolated node(s) with degree 0; Q will be singular for those components"
+    )
+  }
+
+  rho_use <- if (type == "icar") 1 else rho
+
   Q <- Matrix::Diagonal(x = d) - (rho_use * A)
+
   if (!identical(tau, 1)) {
     Q <- tau * Q
   }
@@ -64,6 +74,7 @@ car_precision <- function(A,
   Q <- Matrix::forceSymmetric(Q, uplo = "U")
   methods::as(Q, "dsCMatrix")
 }
+
 
 
 

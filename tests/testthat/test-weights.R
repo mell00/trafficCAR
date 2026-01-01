@@ -90,3 +90,14 @@ test_that("handles extreme magnitudes without densifying", {
   expect_equal(B2[1,2], small)
 })
 
+
+test_that("symmetry is not silently bypassed for large matrices", {
+  n <- 2001L
+  A <- Matrix::sparseMatrix(i = 1, j = 2, x = 1, dims = c(n, n))  # asymmetric
+  expect_error(
+    as_sparse_adjacency(A, symmetrize = FALSE, check = TRUE),
+    "symmetric",
+    ignore.case = TRUE
+  )
+})
+

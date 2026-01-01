@@ -105,4 +105,27 @@ intrinsic_car_precision <- function(A,
     symmetrize = symmetrize,
     check = check
   )
+
+  if (!scale) {
+    return(Q)
+  }
+
+  ## Besag scaling procedure:
+  ## Compute generalized inverse diagonal via sparse Cholesky
+  cholQ <- Matrix::Cholesky(Q, super = TRUE, Imult = 0)
+
+  ## diagonal of the generalized inverse
+  Vinv_diag <- Matrix::diag(Matrix::solve(cholQ, system = "A"))
+
+  ## remove infinities from disconnected components
+  Vinv_diag <- Vinv_diag[is.finite(Vinv_diag)]
+
+  if (length(Vinv_diag) == 0L) {
+    warning("scaling failed: no finite marginal variances")
+    return(Q)
+  }
+
+  s <- exp(mean(log(Vinv_diag)))
+
+  Q * s
 }

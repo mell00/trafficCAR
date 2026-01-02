@@ -56,6 +56,14 @@ test_that("2x2 grid network has expected degree structure", {
   expect_true(any(deg == 4) || any(deg == 3) || any(deg == 2))
 })
 
+test_that("2x2 grid has 9 nodes when intersections are noded", {
+  skip("enable when node_intersections = TRUE is implemented")
+  net <- build_network(toy_grid, node_intersections = TRUE)
+  expect_equal(nrow(net$nodes), 9)
+  expect_equal(nrow(net$edges), 12)
+})
+
+
 
 test_that("disconnected network is not connected", {
   net <- build_network(toy_disconnected)

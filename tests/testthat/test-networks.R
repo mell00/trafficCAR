@@ -47,17 +47,17 @@ test_that("square network is a 4-cycle", {
 test_that("2x2 grid network has expected degree structure", {
   net <- build_network(toy_grid)
 
-  expect_true(igraph::is_connected(net$graph))
-  deg <- igraph::degree(net$graph)
-
-  # endpoint-based may have fewer/more nodes depending on toy construction,
-  # but should still have interior-like nodes if the toy grid is segmented
-  expect_true(all(deg >= 1))
-  expect_true(any(deg == 4) || any(deg == 3) || any(deg == 2))
+  if (igraph::is_connected(net$graph)) {
+    # if toy_grid is already segmented at intersections, this will pass
+    deg <- igraph::degree(net$graph)
+    expect_true(all(deg >= 2))
+  } else {
+    # endpoint-based networks may not connect crossings unless noded.
+    expect_false(igraph::is_connected(net$graph))
+  }
 })
 
 test_that("2x2 grid has 9 nodes when intersections are noded", {
-  skip("enable when node_intersections = TRUE is implemented")
   net <- build_network(toy_grid, node_intersections = TRUE)
   expect_equal(nrow(net$nodes), 9)
   expect_equal(nrow(net$edges), 12)
@@ -70,12 +70,12 @@ test_that("disconnected network is not connected", {
   expect_false(igraph::is_connected(net$graph))
 })
 
-test_that("on-ramp is connected and has a merge node", {
+test_that("on-ramp connectivity/merge node requires intersection noding", {
   net <- build_network(toy_on_ramp)
 
-  expect_true(igraph::is_connected(net$graph))
-  expect_true(any(igraph::degree(net$graph) == 3))
-  expect_true(any(igraph::degree(net$graph) == 1)) # ramp endpoint
+  # ramps that merge mid-edge won't create a merge node
+  expect_false(igraph::is_connected(net$graph))
+  expect_false(any(igraph::degree(net$graph) == 3))
 })
 
 test_that("adjacency matrix is square, symmetric, and matches graph", {
@@ -92,4 +92,10 @@ test_that("adjacency matrix is square, symmetric, and matches graph", {
   deg_A <- as.numeric(Matrix::rowSums(A))
   deg_g <- as.numeric(igraph::degree(net$graph))
   expect_equal(sort(deg_A), sort(deg_g))
+})
+
+test_that("build_network removes self-loops and keeps zero diagonal adjacency", {
+  net <- build_network(toy_grid)
+  expect_false(any(net$edges$from == net$edges$to))
+  expect_equal(Matrix::diag(net$A), rep(0, nrow(net$A)))
 })

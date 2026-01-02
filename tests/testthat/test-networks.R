@@ -99,3 +99,22 @@ test_that("build_network removes self-loops and keeps zero diagonal adjacency", 
   expect_false(any(net$edges$from == net$edges$to))
   expect_equal(Matrix::diag(net$A), rep(0, nrow(net$A)))
 })
+
+test_that("crossing '+' is noded into 5 nodes and 4 edges when node_intersections=TRUE", {
+  # two lines crossing at their interior points (a plus sign)
+  toy_plus <- sf::st_sf(
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 2, 0), ncol = 2, byrow = TRUE)), # horizontal
+      sf::st_linestring(matrix(c(1, -1, 1, 1), ncol = 2, byrow = TRUE)) # vertical
+    ),
+    crs = 4326
+  )
+
+  net0 <- build_network(toy_plus, node_intersections = FALSE)
+  expect_equal(nrow(net0$nodes), 4)  # endpoints only
+  expect_equal(nrow(net0$edges), 2)
+
+  net1 <- build_network(toy_plus, node_intersections = TRUE)
+  expect_equal(nrow(net1$nodes), 5)  # +1 node at crossing
+  expect_equal(nrow(net1$edges), 4)  # split into 4 segments
+})

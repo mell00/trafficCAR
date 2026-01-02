@@ -137,9 +137,6 @@ build_network <- function(roads_sf,
   if (nrow(edges) > 0L) {
     edge_mat <- as.matrix(sf::st_drop_geometry(edges[, c("from", "to")]))
     g <- igraph::add_edges(g, as.vector(t(edge_mat)))
-    if (simplify) {
-      g <- igraph::simplify(g, remove.multiple = TRUE, remove.loops = TRUE)
-    }
   }
 
   # adjacency
@@ -149,12 +146,18 @@ build_network <- function(roads_sf,
   A@x[A@x != 0] <- 1
   A <- Matrix::drop0(A, tol = 0)
 
-  list(
+  net <- list(
     roads = roads,
     nodes = nodes,
     edges = edges,
     graph = g,
     A = A
   )
+
+  if (simplify) {
+    net <- simplify_network(net, keep_edge = "first")
+  }
+
+  net
 }
 

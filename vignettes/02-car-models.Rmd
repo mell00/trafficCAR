@@ -114,6 +114,26 @@ ICAR precision matrices are often scaled so that the geometric mean of the
 marginal variances equals 1, making the precision parameter \(\tau\) more
 comparable across graphs and resolutions.
 
+
+
+**Implementation note.**
+In `trafficCAR`, scaling of ICAR precision matrices is implemented as a
+best-effort calibration step intended to make the precision parameter
+\(\tau\) comparable across graphs and resolutions. The scaling constant is
+computed using a Cholesky-based approximation to the diagonal of the
+generalized inverse. On some graph structures or platforms, this computation
+may fail due to numerical or definiteness issues; in that case, a warning is
+issued and the unscaled ICAR precision matrix is returned.
+
+This behavior preserves correctness of the ICAR model and ensures robust
+construction of precision matrices across platforms. When scaling succeeds,
+the resulting precision matrix is a positive scalar multiple of the unscaled
+ICAR precision, leaving the dependence structure unchanged while rescaling the
+marginal variances.
+
+Future versions may adopt component-wise constrained scaling to guarantee the
+geometric-mean marginal variance normalization described by Sørbye and Rue
+(2014) in all cases.
 In `trafficCAR`, scaling is available via
 `trafficCAR::intrinsic_car_precision(scale = TRUE)`. If the internal Cholesky
 factorization needed for scaling fails, the function warns and returns the

@@ -118,3 +118,31 @@ test_that("crossing '+' is noded into 5 nodes and 4 edges when node_intersection
   expect_equal(nrow(net1$nodes), 5)  # +1 node at crossing
   expect_equal(nrow(net1$edges), 4)  # split into 4 segments
 })
+
+
+test_that("T-junction becomes connected only when node_intersections=TRUE", {
+  toy_T_end <- sf::st_sf(
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 2, 0), ncol = 2, byrow = TRUE)),  # horizontal
+      sf::st_linestring(matrix(c(1, 0, 1, -2), ncol = 2, byrow = TRUE))  # vertical meets at (1,0)
+    ),
+    crs = 4326
+  )
+
+  net0 <- build_network(toy_T_end, node_intersections = FALSE)
+  net1 <- build_network(toy_T_end, node_intersections = TRUE)
+
+  # node set should be the same: (0,0), (2,0), (1,0), (1,-2)
+  expect_equal(nrow(net0$nodes), 4)
+  expect_equal(nrow(net1$nodes), 4)
+
+  # w/o noding: two disconnected edges => 2 components
+  expect_equal(igraph::components(net0$graph)$no, 2)
+
+  # w/ noding: a single T-shaped connected component
+  expect_equal(igraph::components(net1$graph)$no, 1)
+
+  # degree sequence distinguishes them:
+  # - noded T has one degree-3 junction and three leaves => {3,1,1,1}
+  expect_equal(sort(igraph::degree(net1$graph)), c(1, 1, 1, 3))
+})

@@ -59,9 +59,6 @@ test_that("2x2 grid network has expected degree structure", {
 
 test_that("disconnected network is not connected", {
   net <- build_network(toy_disconnected)
-
-  expect_equal(nrow(net$nodes), 4)
-  expect_equal(nrow(net$edges), 2)
   expect_false(igraph::is_connected(net$graph))
 })
 

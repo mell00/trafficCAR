@@ -2,8 +2,10 @@
 #'
 #' @param roads_sf An sf object with LINESTRING geometry
 #' @param crs_out Integer EPSG code for projected CRS
-#' @param node_intersections Logical; if TRUE, split lines at intersections before
-#'   building the graph.
+#' @param node_intersections Logical; if TRUE, "node" the linework by splitting
+#'   at interior intersections/junctions (via `sf::st_union()`), so that crossings
+#'   and T-junctions become graph nodes even when they are not endpoints.
+#'   This may increase the number of edge segments.
 #' @param snap_tol Nonnegative numeric; optional snapping tolerance (in projected
 #'   CRS units) used to merge nearly identical endpoints. Use 0 to disable.
 #' @param simplify Logical; if TRUE, remove self-loops and parallel edges.
@@ -62,6 +64,10 @@ build_network <- function(roads_sf,
     A <- Matrix::Matrix(0, 0, 0, sparse = TRUE)
     return(list(roads = roads, nodes = nodes, edges = edges, graph = g, A = A))
   }
+
+  # NOTE: if node_intersections = FALSE, nodes are only segment endpoints.
+  # if node_intersections = TRUE, lines are noded first so interior junctions
+  # become endpoints before building nodes/edges
 
   # Identify endpoints of each LINESTRING via L1 (first) and Ln (last) per feature
   # st_coordinates() groups coordinates by feature via L1 (and sometimes L2/L3)

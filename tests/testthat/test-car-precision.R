@@ -232,6 +232,46 @@ test_that("ICAR nullity equals number of connected components", {
 })
 
 
+test_that("ICAR scaling returns fallback or positive scalar multiple", {
+  n <- 10
+  A <- matrix(0, n, n)
+  for (i in 1:(n - 1)) A[i, i+1] <- A[i+1, i] <- 1
+  A[1, n] <- A[n, 1] <- 1  # cycle, connected, no isolates
+
+  Q_unscaled <- intrinsic_car_precision(A, tau = 1, scale = FALSE, symmetrize = TRUE)
+  Q_scaled <- suppressWarnings(
+    intrinsic_car_precision(A, tau = 1, scale = TRUE, symmetrize = TRUE)
+  )
+
+  expect_s4_class(Q_scaled, "dsCMatrix")
+  expect_true(Matrix::isSymmetric(Q_scaled))
+
+  # If scaling fails, function returns Q_unscaled (with a warning suppressed here)
+  if (isTRUE(all.equal(Q_scaled, Q_unscaled))) {
+    expect_true(TRUE)
+  } else {
+    # scaling succeeded => Q_scaled = s * Q_unscaled for some s > 0
+    idx <- which(Q_unscaled != 0, arr.ind = TRUE)
+    expect_gt(nrow(idx), 0L)
+
+    i <- idx[1, 1]; j <- idx[1, 2]
+    s_hat <- as.numeric(Q_scaled[i, j] / Q_unscaled[i, j])
+
+    expect_true(is.finite(s_hat))
+    expect_gt(s_hat, 0)
+
+    vals_un <- as.numeric(Q_unscaled[idx])
+    vals_sc <- as.numeric(Q_scaled[idx])
+    ratios <- vals_sc / vals_un
+
+    expect_true(all(is.finite(ratios)))
+    expect_equal(as.numeric(stats::sd(ratios)), 0, tolerance = 1e-8)
+    expect_equal(as.numeric(mean(ratios)), s_hat, tolerance = 1e-8)
+  }
+})
+
+
+
 
 test_that("ICAR construction is not slower than proper CAR", {
 

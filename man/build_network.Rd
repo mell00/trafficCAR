@@ -4,12 +4,26 @@
 \alias{build_network}
 \title{Build a road network graph from sf LINESTRING data}
 \usage{
-build_network(roads_sf, crs_out = 3857)
+build_network(
+  roads_sf,
+  crs_out = 3857,
+  node_intersections = FALSE,
+  snap_tol = 0,
+  simplify = TRUE
+)
 }
 \arguments{
 \item{roads_sf}{An sf object with LINESTRING geometry}
 
 \item{crs_out}{Integer EPSG code for projected CRS}
+
+\item{node_intersections}{Logical; if TRUE, split lines at intersections before
+building the graph (not implemented in v0.1.0).}
+
+\item{snap_tol}{Nonnegative numeric; optional snapping tolerance (in projected
+CRS units) used to merge nearly identical endpoints. Use 0 to disable.}
+
+\item{simplify}{Logical; if TRUE, remove self-loops and parallel edges.}
 }
 \value{
 A list with components:

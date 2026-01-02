@@ -59,3 +59,22 @@ test_that("adjacency invariants hold (symmetric, zero diagonal, matches igraph d
   deg_g <- as.integer(igraph::degree(net$graph))
   expect_equal(deg_A, deg_g)
 })
+
+
+test_that("disconnected components and isolates are preserved", {
+  roads_disc <- sf::st_sf(
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(10, 0, 11, 0), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+
+  net <- build_network(roads_disc, simplify = TRUE)
+
+  expect_equal(nrow(net$nodes), 4)
+  expect_equal(igraph::components(net$graph)$no, 2)
+
+  # no adjacency between the two components: exactly 2 undirected edges => 4 nonzeros
+  expect_equal(Matrix::nnzero(net$A), 4)
+})

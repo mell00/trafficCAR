@@ -17,8 +17,10 @@ build_network(
 
 \item{crs_out}{Integer EPSG code for projected CRS}
 
-\item{node_intersections}{Logical; if TRUE, split lines at intersections before
-building the graph (not implemented in v0.1.0).}
+\item{node_intersections}{Logical; if TRUE, "node" the linework by splitting
+at interior intersections/junctions (via `sf::st_union()`), so that crossings
+and T-junctions become graph nodes even when they are not endpoints.
+This may increase the number of edge segments.}
 
 \item{snap_tol}{Nonnegative numeric; optional snapping tolerance (in projected
 CRS units) used to merge nearly identical endpoints. Use 0 to disable.}

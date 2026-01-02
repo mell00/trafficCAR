@@ -125,7 +125,7 @@ intrinsic_car_precision <- function(A, tau = 1, scale = TRUE, symmetrize = FALSE
   }
 
   ## diagonal of the generalized inverse
-  Vinv_diag <- diag(Matrix::solve(cholQ, system = "A"))
+  Vinv_diag <- Matrix::diag(Matrix::solve(cholQ, system = "A"))
   Vinv_diag <- Vinv_diag[is.finite(Vinv_diag)]
 
   if (length(Vinv_diag) == 0L) {

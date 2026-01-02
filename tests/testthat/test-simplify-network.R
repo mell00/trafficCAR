@@ -78,3 +78,20 @@ test_that("disconnected components and isolates are preserved", {
   # no adjacency between the two components: exactly 2 undirected edges => 4 nonzeros
   expect_equal(Matrix::nnzero(net$A), 4)
 })
+
+
+test_that("snap_tol merges nearly identical endpoints", {
+  roads_near <- sf::st_sf(
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1 + 1e-6, 0, 2, 0), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+
+  net0 <- build_network(roads_near, snap_tol = 0, simplify = TRUE)
+  expect_equal(igraph::components(net0$graph)$no, 2)
+
+  net1 <- build_network(roads_near, snap_tol = 0.5, simplify = TRUE)
+  expect_equal(igraph::components(net1$graph)$no, 1)
+})

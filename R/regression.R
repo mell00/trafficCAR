@@ -11,6 +11,7 @@
 #' @param b0 numeric length p prior mean
 #' @param B0 positive definite p x p prior covariance
 #'
+#' @importFrom stats rgamma
 #' @return numeric length p beta draw
 #' @keywords internal
 update_beta_gaussian <- function(y, X, x, sigma2, b0, B0) {

@@ -206,3 +206,38 @@ test_that("extreme hyperpriors remain well-defined (small/large shapes and rates
   expect_true(all(fit$tau > 0))
   expect_true(all(fit$kappa > 0))
 })
+
+
+test_that("ill-conditioned posterior precision does not crash (rho ~ 1, large kappa, small tau)", {
+  set.seed(7)
+
+  # 8-node cycle (no isolates, moderately connected)
+  n <- 8
+  A <- Matrix::Matrix(0, n, n, sparse = TRUE)
+  for (i in 1:(n - 1)) {
+    A[i, i + 1] <- 1
+    A[i + 1, i] <- 1
+  }
+  A[1, n] <- 1
+  A[n, 1] <- 1
+
+  # mild data signal; not all zeros
+  y <- seq(-1, 1, length.out = n)
+
+  # rho near boundary, huge kappa, tiny tau (posterior precision ~ kappa Q)
+  fit <- sample_proper_car(
+    y = y, A = A, rho = 0.999,
+    n_iter = 15, burn = 0, thin = 1,
+    init = list(
+      x = rep(0, n),
+      tau = 1e-8,
+      kappa = 1e8
+    )
+  )
+
+  expect_true(all(is.finite(fit$x)))
+  expect_true(all(is.finite(fit$tau)))
+  expect_true(all(is.finite(fit$kappa)))
+  expect_true(all(fit$tau > 0))
+  expect_true(all(fit$kappa > 0))
+})

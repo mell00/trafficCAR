@@ -48,8 +48,8 @@ List with x (matrix), tau, kappa, and settings.
 }
 \description{
 Model:
-  y | x, tau ~ N(x, tau^{-1} I)
-  x | kappa  ~ N(0, (kappa Q)^{-1}),  Q = D - rho A (proper CAR)
-  tau ~ Gamma(a_tau, b_tau)   (shape-rate)
-  kappa ~ Gamma(a_kappa, b_kappa) (shape-rate)
+\deqn{y \mid x, \tau \sim N(x, \tau^{-1} I)}
+\deqn{x \mid \kappa \sim N(0, (\kappa Q)^{-1}), \quad Q = D - \rho A \text{ (proper CAR)}}
+\deqn{\tau \sim \mathrm{Gamma}(a_{\tau}, b_{\tau}) \quad \text{(shape-rate)}}
+\deqn{\kappa \sim \mathrm{Gamma}(a_{\kappa}, b_{\kappa}) \quad \text{(shape-rate)}}
 }

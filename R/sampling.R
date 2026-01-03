@@ -1,6 +1,6 @@
 #' Draw from a multivariate normal with sparse precision
 #'
-#' Sample x ~ N(Q^{-1} b, Q^{-1}) where Q is symmetric positive definite.
+#' Sample \deqn{x \sim N(Q^{-1} b, Q^{-1})} where \eqn{Q} is symmetric positive definite.
 #'
 #' @param Q Sparse symmetric positive definite precision matrix (dgCMatrix).
 #' @param b Optional numeric vector. If NULL, mean is 0.
@@ -76,10 +76,10 @@ gibbs_step_proper_car <- function(y, Q_base, x, tau, kappa,
 #' Gibbs sampler for a proper CAR latent Gaussian model
 #'
 #' Model:
-#'   y | x, tau ~ N(x, tau^{-1} I)
-#'   x | kappa  ~ N(0, (kappa Q)^{-1}),  Q = D - rho A (proper CAR)
-#'   tau ~ Gamma(a_tau, b_tau)   (shape-rate)
-#'   kappa ~ Gamma(a_kappa, b_kappa) (shape-rate)
+#' \deqn{y \mid x, \tau \sim N(x, \tau^{-1} I)}
+#' \deqn{x \mid \kappa \sim N(0, (\kappa Q)^{-1}), \quad Q = D - \rho A \text{ (proper CAR)}}
+#' \deqn{\tau \sim \mathrm{Gamma}(a_{\tau}, b_{\tau}) \quad \text{(shape-rate)}}
+#' \deqn{\kappa \sim \mathrm{Gamma}(a_{\kappa}, b_{\kappa}) \quad \text{(shape-rate)}}
 #'
 #' @param y Numeric vector of observations (length n).
 #' @param A Adjacency matrix (dense or sparse). Diagonal ignored.

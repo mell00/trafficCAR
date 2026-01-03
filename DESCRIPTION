@@ -21,14 +21,15 @@ Imports:
     sf,
     igraph,
     Matrix,
-    osmdata,
-    ggplot2,
-    lwgeom,
-    methods
+    methods,
+    units
 Suggests: 
     knitr,
     rmarkdown,
     microbenchmark,
+    osmdata,
+    ggplot2,
+    lwgeom,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr

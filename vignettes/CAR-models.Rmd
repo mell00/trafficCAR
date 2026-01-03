@@ -1,6 +1,10 @@
 ---
-title: "02-car-models"
-output: html_document
+title: "CAR-models"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CAR-models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}

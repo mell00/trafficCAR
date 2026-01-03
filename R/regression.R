@@ -21,6 +21,16 @@ update_beta_gaussian <- function(y, X, x, sigma2, b0, B0) {
   p <- ncol(X)
 
   if (!is.numeric(x) || length(x) != n) stop("`x` must be numeric length length(y).")
+
+  # coerce to double for stable linear algebra
+  y <- as.double(y)
+  x <- as.double(x)
+  storage.mode(X) <- "double"
+
+  if (any(!is.finite(y))) stop("`y` must be finite.")
+  if (any(!is.finite(x))) stop("`x` must be finite.")
+  if (any(!is.finite(X))) stop("`X` must be finite.")
+
   if (!is.numeric(sigma2) || length(sigma2) != 1 || !is.finite(sigma2) || sigma2 <= 0)
     stop("`sigma2` must be a positive scalar.")
 

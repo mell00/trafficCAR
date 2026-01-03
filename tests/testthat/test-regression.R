@@ -82,15 +82,18 @@ test_that("update_beta_gaussian rejects non-finite y/X/x and bad types", {
   B0 <- diag(1, p)
 
   y2 <- y; y2[3] <- NA_real_
-  expect_error(update_beta_gaussian(y2, X, x, 1, b0, B0), "numeric", fixed = FALSE)
+  expect_error(update_beta_gaussian(y2, X, x, 1, b0, B0), "finite")
 
   x2 <- x; x2[1] <- Inf
-  expect_error(update_beta_gaussian(y, X, x2, 1, b0, B0), "x", fixed = FALSE)
+  expect_error(update_beta_gaussian(y, X, x2, 1, b0, B0), "finite")
 
   X2 <- X; X2[2,1] <- NaN
-  expect_error(update_beta_gaussian(y, X2, x, 1, b0, B0), "X", fixed = FALSE)
+  expect_error(update_beta_gaussian(y, X2, x, 1, b0, B0), "finite")
 
-  expect_error(update_beta_gaussian(as.integer(y), X, x, 1, b0, B0), "y", fixed = FALSE)
+  expect_silent(update_beta_gaussian(as.integer(y), X, x, 1, b0, B0))
   expect_error(update_beta_gaussian(y, as.data.frame(X), x, 1, b0, B0), "X", fixed = FALSE)
 })
+
+
+
 

@@ -123,3 +123,24 @@ test_that("update_beta_gaussian rejects singular or non-PD B0", {
   B0_indef <- matrix(c(1, 2, 2, 1), 2, 2)     # has eigenvalues 3 and -1
   expect_error(update_beta_gaussian(y, X, x, 1, b0, B0_indef), "B0", fixed = FALSE)
 })
+
+
+test_that("update_beta_gaussian handles rank-deficient X without crashing (proper prior)", {
+  n <- 50
+  x1 <- rnorm(n)
+  X <- cbind(1, x1, x1)  # perfectly collinear columns 2 and 3
+  p <- ncol(X)
+
+  y <- rnorm(n)
+  x <- rnorm(n)
+  b0 <- rep(0, p)
+  B0 <- diag(10, p)
+
+  set.seed(1)
+  b <- update_beta_gaussian(y, X, x, sigma2 = 0.5, b0, B0)
+  expect_true(all(is.finite(b)))
+  expect_length(b, p)
+})
+
+
+

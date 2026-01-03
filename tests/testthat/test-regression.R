@@ -71,3 +71,26 @@ test_that("update_beta_gaussian validates inputs", {
   expect_error(update_beta_gaussian(y, X, x[-1], sigma2 = 1, b0 = 0, B0 = matrix(1)), "x")
   expect_error(update_beta_gaussian(y, X, x, sigma2 = 1, b0 = c(0, 1), B0 = diag(1)), "b0")
 })
+
+
+test_that("update_beta_gaussian rejects non-finite y/X/x and bad types", {
+  n <- 10; p <- 2
+  X <- matrix(rnorm(n * p), n, p)
+  y <- rnorm(n)
+  x <- rnorm(n)
+  b0 <- rep(0, p)
+  B0 <- diag(1, p)
+
+  y2 <- y; y2[3] <- NA_real_
+  expect_error(update_beta_gaussian(y2, X, x, 1, b0, B0), "numeric", fixed = FALSE)
+
+  x2 <- x; x2[1] <- Inf
+  expect_error(update_beta_gaussian(y, X, x2, 1, b0, B0), "x", fixed = FALSE)
+
+  X2 <- X; X2[2,1] <- NaN
+  expect_error(update_beta_gaussian(y, X2, x, 1, b0, B0), "X", fixed = FALSE)
+
+  expect_error(update_beta_gaussian(as.integer(y), X, x, 1, b0, B0), "y", fixed = FALSE)
+  expect_error(update_beta_gaussian(y, as.data.frame(X), x, 1, b0, B0), "X", fixed = FALSE)
+})
+

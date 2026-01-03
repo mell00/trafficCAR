@@ -181,3 +181,28 @@ test_that("extreme y values do not produce NaN/Inf", {
   expect_true(all(fit$tau > 0))
   expect_true(all(fit$kappa > 0))
 })
+
+
+test_that("extreme hyperpriors remain well-defined (small/large shapes and rates)", {
+  set.seed(6)
+
+  # 4-node chain
+  A <- Matrix::Matrix(0, 4, 4, sparse = TRUE)
+  A[1, 2] <- 1; A[2, 1] <- 1
+  A[2, 3] <- 1; A[3, 2] <- 1
+  A[3, 4] <- 1; A[4, 3] <- 1
+  y <- rep(0, 4)
+
+  # very small shape/rate (still positive) and very large rate
+  fit <- sample_proper_car(
+    y = y, A = A, rho = 0.7,
+    n_iter = 25,
+    a_tau = 1e-3, b_tau = 1e3,
+    a_kappa = 1e-3, b_kappa = 1e3
+  )
+
+  expect_true(all(is.finite(fit$tau)))
+  expect_true(all(is.finite(fit$kappa)))
+  expect_true(all(fit$tau > 0))
+  expect_true(all(fit$kappa > 0))
+})

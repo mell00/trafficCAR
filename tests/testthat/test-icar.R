@@ -93,3 +93,29 @@ test_that("ICAR rejects invalid inputs", {
   expect_error(sample_icar(A, isolate_prec = 0), "isolate_prec", ignore.case = TRUE)
   expect_error(sample_icar(A, isolate_prec = -1), "isolate_prec", ignore.case = TRUE)
 })
+
+
+test_that("ICAR is robust to diagonal entries and mild asymmetry in A", {
+  A <- Matrix::Matrix(0, 6, 6, sparse = TRUE)
+
+  # component 1: 1-2-3
+  A[1,2] <- 1
+  A[2,1] <- 1
+  A[2,3] <- 1
+  A[3,2] <- 1
+
+  # component 2: 4-5, but introduce mild asymmetry
+  A[4,5] <- 1
+  A[5,4] <- 2  # asymmetry on purpose
+
+  # diagonal noise
+  diag(A) <- 7
+
+  set.seed(10)
+  x <- sample_icar(A, tau = 1, isolate = "independent")
+
+  # component-wise centering should still hold (after forceSymmetric + diag=0)
+  expect_equal(sum(x[1:3]), 0, tolerance = 1e-6)
+  expect_equal(sum(x[4:5]), 0, tolerance = 1e-6)
+  expect_true(is.finite(x[6]))  # isolate
+})

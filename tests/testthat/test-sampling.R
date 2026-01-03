@@ -111,3 +111,25 @@ test_that("proper CAR rejects isolates", {
     "isolated"
   )
 })
+
+
+test_that("extreme rho values are handled (near-boundary but admissible)", {
+  set.seed(4)
+
+  # 6-node cycle (no isolates)
+  n <- 6
+  A <- Matrix::Matrix(0, n, n, sparse = TRUE)
+  for (i in 1:(n - 1)) {
+    A[i, i + 1] <- 1
+    A[i + 1, i] <- 1
+  }
+  A[1, n] <- 1; A[n, 1] <- 1
+
+  y <- rep(0, n)
+
+  # rho close to 1 but still < 1; should run (might be numerically tougher)
+  fit <- sample_proper_car(y, A, rho = 0.999, n_iter = 20, burn = 0, thin = 1)
+  expect_true(all(is.finite(fit$x)))
+  expect_true(all(is.finite(fit$tau)))
+  expect_true(all(is.finite(fit$kappa)))
+})

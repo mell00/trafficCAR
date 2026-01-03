@@ -143,4 +143,19 @@ test_that("update_beta_gaussian handles rank-deficient X without crashing (prope
 })
 
 
+test_that("update_beta_gaussian is stable under near-collinearity", {
+  set.seed(1)
+  n <- 200
+  z <- rnorm(n)
+  X <- cbind(1, z, z + 1e-10 * rnorm(n))  # nearly the same
+  p <- ncol(X)
+
+  y <- rnorm(n)
+  x <- rnorm(n)
+  b0 <- rep(0, p)
+  B0 <- diag(100, p)
+
+  b <- update_beta_gaussian(y, X, x, sigma2 = 1, b0, B0)
+  expect_true(all(is.finite(b)))
+})
 

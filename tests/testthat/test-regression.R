@@ -159,3 +159,20 @@ test_that("update_beta_gaussian is stable under near-collinearity", {
   expect_true(all(is.finite(b)))
 })
 
+
+test_that("update_beta_gaussian behaves under extreme sigma2", {
+  set.seed(1)
+  n <- 60; p <- 3
+  X <- matrix(rnorm(n * p), n, p)
+  y <- rnorm(n)
+  x <- rnorm(n)
+  b0 <- rep(0, p)
+  B0 <- diag(1, p)
+
+  b_small <- update_beta_gaussian(y, X, x, sigma2 = 1e-12, b0, B0)
+  b_large <- update_beta_gaussian(y, X, x, sigma2 = 1e+12, b0, B0)
+
+  expect_true(all(is.finite(b_small)))
+  expect_true(all(is.finite(b_large)))
+})
+

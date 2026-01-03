@@ -96,3 +96,18 @@ test_that("asymmetric A works when symmetrize=TRUE and fails when symmetrize=FAL
     sample_proper_car(y, A, rho = 0.7, n_iter = 10, symmetrize = FALSE, check = TRUE)
   )
 })
+
+
+test_that("proper CAR rejects isolates", {
+  # isolated node 4
+  A <- Matrix::Matrix(0, 4, 4, sparse = TRUE)
+  A[1, 2] <- 1; A[2, 1] <- 1
+  A[2, 3] <- 1; A[3, 2] <- 1
+
+  y <- rep(0, 4)
+
+  expect_error(
+    sample_proper_car(y, A, rho = 0.9, n_iter = 10),
+    "isolated"
+  )
+})

@@ -59,3 +59,15 @@ test_that("update_sigma2_ig is reproducible and positive", {
   expect_true(is.finite(s1) && s1 > 0)
   expect_equal(s1, s2)
 })
+
+
+test_that("update_beta_gaussian validates inputs", {
+  n <- 5
+  X <- matrix(1, n, 1)
+  y <- rnorm(n)
+  x <- rnorm(n)
+
+  expect_error(update_beta_gaussian(y, X, x, sigma2 = -1, b0 = 0, B0 = matrix(1)), "sigma2")
+  expect_error(update_beta_gaussian(y, X, x[-1], sigma2 = 1, b0 = 0, B0 = matrix(1)), "x")
+  expect_error(update_beta_gaussian(y, X, x, sigma2 = 1, b0 = c(0, 1), B0 = diag(1)), "b0")
+})

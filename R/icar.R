@@ -19,6 +19,21 @@ sample_icar <- function(A,
   if (!inherits(A, "Matrix")) {
     A <- Matrix::Matrix(A, sparse = TRUE)
   }
+
+  if (nrow(A) != ncol(A)) stop("`A` must be square.")
+
+  if (!is.numeric(tau) || length(tau) != 1 || !is.finite(tau) || tau <= 0) {
+    stop("`tau` must be a positive finite scalar.")
+  }
+  if (!is.numeric(kappa) || length(kappa) != 1 || !is.finite(kappa) || kappa <= 0) {
+    stop("`kappa` must be a positive finite scalar.")
+  }
+  if (!is.null(isolate_prec) &&
+      (!is.numeric(isolate_prec) || length(isolate_prec) != 1 ||
+       !is.finite(isolate_prec) || isolate_prec <= 0)) {
+    stop("`isolate_prec` must be a positive finite scalar (or NULL).")
+  }
+
   A <- Matrix::forceSymmetric(A, uplo = "U")
   diag(A) <- 0
 

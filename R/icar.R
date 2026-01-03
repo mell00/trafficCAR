@@ -53,7 +53,11 @@ sample_icar <- function(A,
 
   # ICAR precision on non-isolates
   A2 <- A[noniso, noniso, drop = FALSE]
-  Q  <- intrinsic_car_precision(A2, tau = tau)
+  # raw ICAR precision (singular)
+  d <- Matrix::rowSums(A2)
+  Q <- tau * (Matrix::Diagonal(n = nrow(A2), x = as.numeric(d)) - A2)
+  Q <- Matrix::forceSymmetric(Q, uplo = "U")
+
 
   memb2 <- memb[noniso]
 

@@ -6,6 +6,7 @@
 #' @param isolate How to handle isolated nodes: "independent" or "drop".
 #' @param isolate_prec Precision for isolated nodes if kept independent.
 #'
+#'@importFrom stats rnorm
 #' @return Numeric vector of length nrow(A).
 #' @keywords internal
 sample_icar <- function(A,

@@ -22,7 +22,8 @@ Imports:
     igraph,
     Matrix,
     methods,
-    units
+    units,
+    stats
 Suggests: 
     knitr,
     rmarkdown,

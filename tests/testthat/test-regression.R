@@ -17,3 +17,27 @@ test_that("update_beta_gaussian returns correct length and is reproducible", {
   expect_length(b1, p)
   expect_equal(b1, b2)
 })
+
+
+test_that("update_beta_gaussian recovers signal in a simple toy setup", {
+  set.seed(2)
+  n <- 200
+  p <- 2
+  X <- cbind(1, rnorm(n))
+  beta_true <- c(0.7, -1.2)
+  x <- rep(0, n) # isolate regression layer from spatial effects
+  sigma2 <- 0.25^2
+  y <- as.numeric(X %*% beta_true + x + rnorm(n, sd = sqrt(sigma2)))
+
+  # weak prior
+  b0 <- rep(0, p)
+  B0 <- diag(1e6, p)
+
+  # draw many betas (conditional on x,sigma2) and average
+  B <- 2000
+  draws <- replicate(B, update_beta_gaussian(y, X, x, sigma2, b0, B0))
+  beta_hat <- rowMeans(draws)
+
+  expect_equal(beta_hat[1], beta_true[1], tolerance = 0.1)
+  expect_equal(beta_hat[2], beta_true[2], tolerance = 0.1)
+})

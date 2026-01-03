@@ -74,3 +74,25 @@ test_that("posterior shrinks toward 0 when y = 0", {
   # loose threshold; ensure no obvious drift/explosion
   expect_true(all(abs(post_mean) < 0.25))
 })
+
+
+test_that("asymmetric A works when symmetrize=TRUE and fails when symmetrize=FALSE (check=TRUE)", {
+  set.seed(3)
+
+  A <- Matrix::Matrix(0, 4, 4, sparse = TRUE)
+  A[1, 2] <- 1
+  A[2, 3] <- 1
+  A[3, 4] <- 1
+  # intentionally asymmetric
+
+  y <- rep(0, 4)
+
+  # symmetrize should make it usable
+  fit <- sample_proper_car(y, A, rho = 0.7, n_iter = 10, symmetrize = TRUE, check = TRUE)
+  expect_equal(ncol(fit$x), 4)
+
+  # without symmetrize, as_sparse_adjacency/check should complain
+  expect_error(
+    sample_proper_car(y, A, rho = 0.7, n_iter = 10, symmetrize = FALSE, check = TRUE)
+  )
+})

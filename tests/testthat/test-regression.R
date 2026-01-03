@@ -95,5 +95,17 @@ test_that("update_beta_gaussian rejects non-finite y/X/x and bad types", {
 })
 
 
+test_that("update_beta_gaussian catches dimension mismatches cleanly", {
+  n <- 8; p <- 3
+  X <- matrix(rnorm(n * p), n, p)
+  y <- rnorm(n)
+  x <- rnorm(n)
+  b0 <- rep(0, p)
+  B0 <- diag(1, p)
 
+  expect_error(update_beta_gaussian(y[-1], X, x, 1, b0, B0), "nrow", fixed = FALSE)
+  expect_error(update_beta_gaussian(y, X[, -1, drop = FALSE], x, 1, b0, B0), "b0", fixed = FALSE)
+  expect_error(update_beta_gaussian(y, X, x, 1, b0[-1], B0), "b0", fixed = FALSE)
+  expect_error(update_beta_gaussian(y, X, x, 1, b0, B0[-1, -1]), "B0", fixed = FALSE)
+})
 

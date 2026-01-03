@@ -109,3 +109,17 @@ test_that("update_beta_gaussian catches dimension mismatches cleanly", {
   expect_error(update_beta_gaussian(y, X, x, 1, b0, B0[-1, -1]), "B0", fixed = FALSE)
 })
 
+
+test_that("update_beta_gaussian rejects singular or non-PD B0", {
+  n <- 20; p <- 2
+  X <- matrix(rnorm(n * p), n, p)
+  y <- rnorm(n)
+  x <- rnorm(n)
+  b0 <- rep(0, p)
+
+  B0_singular <- matrix(c(1, 1, 1, 1), 2, 2)  # rank 1
+  expect_error(update_beta_gaussian(y, X, x, 1, b0, B0_singular), "B0", fixed = FALSE)
+
+  B0_indef <- matrix(c(1, 2, 2, 1), 2, 2)     # has eigenvalues 3 and -1
+  expect_error(update_beta_gaussian(y, X, x, 1, b0, B0_indef), "B0", fixed = FALSE)
+})

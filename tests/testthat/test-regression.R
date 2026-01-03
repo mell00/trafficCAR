@@ -190,3 +190,27 @@ test_that("update_beta_gaussian handles extreme scaling in X", {
   b <- update_beta_gaussian(y, X, x, sigma2 = 1, b0, B0)
   expect_true(all(is.finite(b)))
 })
+
+
+test_that("update_sigma2_ig rejects invalid hyperparameters", {
+  n <- 10
+  X <- cbind(1, rnorm(n))
+  beta <- c(0, 0)
+  x <- rnorm(n)
+  y <- rnorm(n)
+
+  expect_error(update_sigma2_ig(y, X, beta, x, a0 = 0, b0 = 1), "a0")
+  expect_error(update_sigma2_ig(y, X, beta, x, a0 = 1, b0 = 0), "b0")
+})
+
+test_that("update_sigma2_ig stays finite with huge residuals", {
+  set.seed(1)
+  n <- 50
+  X <- cbind(1, rnorm(n))
+  beta <- c(0, 0)
+  x <- rep(0, n)
+  y <- 1e8 * rnorm(n)  # huge
+
+  s <- update_sigma2_ig(y, X, beta, x, a0 = 2, b0 = 2)
+  expect_true(is.finite(s) && s > 0)
+})

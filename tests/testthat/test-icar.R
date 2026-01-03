@@ -32,3 +32,23 @@ test_that("ICAR isolate = drop sets isolated nodes to NA", {
   expect_true(is.na(x[4]))
   expect_equal(sum(x[1:3]), 0, tolerance = 1e-6)
 })
+
+
+test_that("ICAR sampling is reproducible", {
+
+  A <- Matrix::bandSparse(
+    10,
+    k = c(-1, 1),
+    diag = list(rep(1, 9), rep(1, 9))
+  )
+
+  set.seed(123)
+  x1 <- sample_icar(A)
+
+  set.seed(123)
+  x2 <- sample_icar(A)
+
+  expect_equal(x1, x2)
+})
+
+

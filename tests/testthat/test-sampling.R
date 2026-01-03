@@ -49,3 +49,28 @@ test_that("reproducibility: same seed gives identical draws", {
   expect_equal(fit1$tau, fit2$tau)
   expect_equal(fit1$kappa, fit2$kappa)
 })
+
+
+test_that("posterior shrinks toward 0 when y = 0", {
+  set.seed(2)
+
+  # 5-node path
+  n <- 5
+  A <- Matrix::Matrix(0, n, n, sparse = TRUE)
+  for (i in 1:(n - 1)) {
+    A[i, i + 1] <- 1
+    A[i + 1, i] <- 1
+  }
+
+  y <- rep(0, n)
+
+  fit <- sample_proper_car(
+    y = y, A = A, rho = 0.9,
+    n_iter = 80, burn = 20, thin = 2,
+    a_tau = 2, b_tau = 2, a_kappa = 2, b_kappa = 2
+  )
+
+  post_mean <- colMeans(fit$x)
+  # loose threshold; ensure no obvious drift/explosion
+  expect_true(all(abs(post_mean) < 0.25))
+})

@@ -18,3 +18,17 @@ test_that("ICAR enforces sum-to-zero per connected component", {
   expect_equal(sum(x[4:5]), 0, tolerance = 1e-6)
   expect_true(is.finite(x[6]))
 })
+
+
+test_that("ICAR isolate = drop sets isolated nodes to NA", {
+
+  A <- Matrix::Matrix(0, 4, 4, sparse = TRUE)
+  A[1,2] <- A[2,1] <- 1
+  A[2,3] <- A[3,2] <- 1
+  # node 4 isolate
+
+  x <- sample_icar(A, isolate = "drop")
+
+  expect_true(is.na(x[4]))
+  expect_equal(sum(x[1:3]), 0, tolerance = 1e-6)
+})

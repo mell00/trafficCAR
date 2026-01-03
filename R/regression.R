@@ -41,3 +41,26 @@ update_beta_gaussian <- function(y, X, x, sigma2, b0, B0) {
   L <- tryCatch(chol(V), error = function(e) stop("Posterior covariance not PD."))
   as.numeric(m + t(L) %*% rnorm(p))
 }
+
+
+
+#' Optional Gibbs update for sigma2 with Inv-Gamma prior
+#'
+#' Prior: sigma2 ~ Inv-Gamma(a0, b0)  (shape a0, scale b0)
+#' Conditional: sigma2 | rest ~ Inv-Gamma(a0 + n/2, b0 + 0.5 * RSS)
+#'
+#' @keywords internal
+update_sigma2_ig <- function(y, X, beta, x, a0, b0) {
+  n <- length(y)
+  mu <- as.numeric(X %*% beta + x)
+  rss <- sum((y - mu)^2)
+
+  if (!is.numeric(a0) || length(a0) != 1 || a0 <= 0) stop("`a0` must be > 0.")
+  if (!is.numeric(b0) || length(b0) != 1 || b0 <= 0) stop("`b0` must be > 0.")
+
+  shape <- a0 + n / 2
+  scale <- b0 + 0.5 * rss
+
+  # inv-Gamma via 1 / Gamma(shape, rate=scale)
+  1 / rgamma(1, shape = shape, rate = scale)
+}

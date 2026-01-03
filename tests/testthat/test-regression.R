@@ -90,7 +90,8 @@ test_that("update_beta_gaussian rejects non-finite y/X/x and bad types", {
   X2 <- X; X2[2,1] <- NaN
   expect_error(update_beta_gaussian(y, X2, x, 1, b0, B0), "finite")
 
-  expect_silent(update_beta_gaussian(as.integer(y), X, x, 1, b0, B0))
+  expect_error(update_beta_gaussian(as.integer(y), X, x, 1, b0, B0), "double vector")
+
   expect_error(update_beta_gaussian(y, as.data.frame(X), x, 1, b0, B0), "X", fixed = FALSE)
 })
 
@@ -176,3 +177,16 @@ test_that("update_beta_gaussian behaves under extreme sigma2", {
   expect_true(all(is.finite(b_large)))
 })
 
+
+test_that("update_beta_gaussian handles extreme scaling in X", {
+  set.seed(1)
+  n <- 30
+  X <- cbind(1, 1e150 * rnorm(n))  # very large
+  y <- rnorm(n)
+  x <- rnorm(n)
+  b0 <- c(0, 0)
+  B0 <- diag(1, 2)
+
+  b <- update_beta_gaussian(y, X, x, sigma2 = 1, b0, B0)
+  expect_true(all(is.finite(b)))
+})

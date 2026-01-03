@@ -64,3 +64,14 @@ test_that("ICAR handles all-isolates graph", {
   expect_true(all(is.na(x_drop)))
   expect_equal(length(x_drop), 5)
 })
+
+
+test_that("ICAR works for component of size 2 (single edge)", {
+  A <- Matrix::Matrix(0, 3, 3, sparse = TRUE)
+  A[1,2] <- A[2,1] <- 1
+  # node 3 isolate
+
+  x <- sample_icar(A, isolate = "independent", tau = 1)
+  expect_equal(sum(x[1:2]), 0, tolerance = 1e-6)
+  expect_true(is.finite(x[3]))
+})

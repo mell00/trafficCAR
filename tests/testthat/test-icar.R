@@ -75,3 +75,21 @@ test_that("ICAR works for component of size 2 (single edge)", {
   expect_equal(sum(x[1:2]), 0, tolerance = 1e-6)
   expect_true(is.finite(x[3]))
 })
+
+
+test_that("ICAR rejects invalid inputs", {
+  A_rect <- Matrix::Matrix(0, 3, 4, sparse = TRUE)
+  expect_error(sample_icar(A_rect), "square|nrow|ncol|dimension", ignore.case = TRUE)
+
+  A <- Matrix::Matrix(0, 3, 3, sparse = TRUE)
+  A[1,2] <- A[2,1] <- 1
+
+  expect_error(sample_icar(A, tau = 0), "tau", ignore.case = TRUE)
+  expect_error(sample_icar(A, tau = -1), "tau", ignore.case = TRUE)
+
+  expect_error(sample_icar(A, kappa = 0), "kappa", ignore.case = TRUE)
+  expect_error(sample_icar(A, kappa = -10), "kappa", ignore.case = TRUE)
+
+  expect_error(sample_icar(A, isolate_prec = 0), "isolate_prec", ignore.case = TRUE)
+  expect_error(sample_icar(A, isolate_prec = -1), "isolate_prec", ignore.case = TRUE)
+})

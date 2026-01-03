@@ -41,3 +41,21 @@ test_that("update_beta_gaussian recovers signal in a simple toy setup", {
   expect_equal(beta_hat[1], beta_true[1], tolerance = 0.1)
   expect_equal(beta_hat[2], beta_true[2], tolerance = 0.1)
 })
+
+
+test_that("update_sigma2_ig is reproducible and positive", {
+  set.seed(3)
+  n <- 50
+  X <- cbind(1, rnorm(n))
+  beta <- c(0.2, 0.5)
+  x <- rnorm(n, sd = 0.3)
+  y <- as.numeric(X %*% beta + x + rnorm(n, sd = 0.4))
+
+  set.seed(99)
+  s1 <- update_sigma2_ig(y, X, beta, x, a0 = 2, b0 = 1)
+  set.seed(99)
+  s2 <- update_sigma2_ig(y, X, beta, x, a0 = 2, b0 = 1)
+
+  expect_true(is.finite(s1) && s1 > 0)
+  expect_equal(s1, s2)
+})

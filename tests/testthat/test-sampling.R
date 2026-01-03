@@ -133,3 +133,25 @@ test_that("extreme rho values are handled (near-boundary but admissible)", {
   expect_true(all(is.finite(fit$tau)))
   expect_true(all(is.finite(fit$kappa)))
 })
+
+
+test_that("invalid sampler arguments fail fast (adversarial inputs)", {
+  A <- Matrix::Matrix(0, 3, 3, sparse = TRUE)
+  A[1, 2] <- 1; A[2, 1] <- 1
+  A[2, 3] <- 1; A[3, 2] <- 1
+  y <- rep(0, 3)
+
+  expect_error(sample_proper_car(y = "nope", A = A, n_iter = 10))
+  expect_error(sample_proper_car(y = y, A = A, n_iter = 0))
+  expect_error(sample_proper_car(y = y, A = A, n_iter = 10, burn = 10))
+  expect_error(sample_proper_car(y = y, A = A, n_iter = 10, thin = 0))
+  expect_error(sample_proper_car(y = y, A = A, rho = 1.0, n_iter = 10))  # car_precision check
+  expect_error(sample_proper_car(y = y, A = A, rho = -1.0, n_iter = 10)) # car_precision check
+
+  expect_error(sample_proper_car(y = y[-1], A = A, n_iter = 10)) # length mismatch
+
+  # bad init
+  expect_error(sample_proper_car(y = y, A = A, n_iter = 10, init = list(tau = -1)))
+  expect_error(sample_proper_car(y = y, A = A, n_iter = 10, init = list(kappa = 0)))
+  expect_error(sample_proper_car(y = y, A = A, n_iter = 10, init = list(x = c(1, 2))))
+})

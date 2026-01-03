@@ -155,3 +155,29 @@ test_that("invalid sampler arguments fail fast (adversarial inputs)", {
   expect_error(sample_proper_car(y = y, A = A, n_iter = 10, init = list(kappa = 0)))
   expect_error(sample_proper_car(y = y, A = A, n_iter = 10, init = list(x = c(1, 2))))
 })
+
+
+test_that("extreme y values do not produce NaN/Inf", {
+  set.seed(5)
+
+  # 5-node complete graph minus diagonal (dense-ish)
+  n <- 5
+  A <- Matrix::Matrix(1, n, n, sparse = TRUE)
+  Matrix::diag(A) <- 0
+
+  # very large magnitude observations
+  y <- c(1e6, -1e6, 5e5, -5e5, 1e6)
+
+  fit <- sample_proper_car(
+    y = y, A = A, rho = 0.5,
+    n_iter = 30, burn = 10, thin = 1,
+    a_tau = 1, b_tau = 1,
+    a_kappa = 1, b_kappa = 1
+  )
+
+  expect_true(all(is.finite(fit$x)))
+  expect_true(all(is.finite(fit$tau)))
+  expect_true(all(is.finite(fit$kappa)))
+  expect_true(all(fit$tau > 0))
+  expect_true(all(fit$kappa > 0))
+})

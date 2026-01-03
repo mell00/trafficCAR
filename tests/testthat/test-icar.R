@@ -52,3 +52,15 @@ test_that("ICAR sampling is reproducible", {
 })
 
 
+test_that("ICAR handles all-isolates graph", {
+  A <- Matrix::Matrix(0, 5, 5, sparse = TRUE)
+
+  set.seed(1)
+  x_ind <- sample_icar(A, isolate = "independent", tau = 2)
+  expect_true(all(is.finite(x_ind)))
+  expect_equal(length(x_ind), 5)
+
+  x_drop <- sample_icar(A, isolate = "drop", tau = 2)
+  expect_true(all(is.na(x_drop)))
+  expect_equal(length(x_drop), 5)
+})

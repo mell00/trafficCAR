@@ -38,8 +38,13 @@ update_beta_gaussian <- function(y, X, x, sigma2, b0, B0) {
   if (!is.matrix(B0) || !is.numeric(B0) || any(dim(B0) != c(p, p)))
     stop("`B0` must be a numeric p x p matrix.")
 
-  # Prior precision
-  B0_inv <- tryCatch(solve(B0), error = function(e) stop("`B0` must be invertible (PD)."))
+  # prior precision; require B0 symmetric positive definite
+  if (!isTRUE(all.equal(B0, t(B0)))) stop("`B0` must be symmetric.")
+  B0_ch <- tryCatch(
+    chol(B0),
+    error = function(e) stop("`B0` must be positive definite.")
+  )
+  B0_inv <- chol2inv(B0_ch)
 
   XtX <- crossprod(X)               # p x p
   Vinv <- XtX / sigma2 + B0_inv     # p x p

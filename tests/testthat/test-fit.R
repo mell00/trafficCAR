@@ -421,3 +421,21 @@ test_that("tau and sigma2_init extremes stay finite", {
 })
 
 
+test_that("burn_in = n_iter - 1 keeps one draw", {
+  set.seed(16)
+
+  n <- 5
+  A <- matrix(0, n, n)
+  for (i in 1:(n - 1)) {
+    A[i, i + 1] <- 1
+    A[i + 1, i] <- 1
+  }
+
+  y <- as.double(rnorm(n))
+
+  fit <- fit_car(y, A, type = "proper", rho = 0.5, tau = 1,
+                 n_iter = 10, burn_in = 9, thin = 1)
+
+  expect_equal(nrow(fit$draws$x), 1)
+  expect_equal(length(fit$draws$sigma2), 1)
+})

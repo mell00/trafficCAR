@@ -173,3 +173,175 @@ roads_to_segments <- function(roads,
 
   segs
 }
+
+
+
+
+
+
+
+
+#' Build segment adjacency from segment geometries
+#'
+#' Constructs an undirected adjacency matrix `A` where segments are neighbors if
+#' they share a node (endpoint). Intended to be used after `roads_to_segments()`.
+#'
+#' Isolates (degree 0) are kept (all-zero rows/cols). Connected components are
+#' returned for ICAR sum-to-zero centering per component.
+#'
+#' @param segments An `sf` with LINESTRING geometries and (optionally) `seg_id`.
+#' @param crs_m Metric CRS used when `segments` is lon/lat (for robust node keys).
+#'   Default 3857.
+#' @param tol Nonnegative numeric tolerance for snapping node coordinates (in meters
+#'   if projected). If 0, uses exact coordinates. Default 0.
+#' @param verbose Logical; emit simple messages. Default FALSE.
+#'
+#' @return A list with:
+#' \describe{
+#'   \item{A}{Sparse symmetric adjacency matrix (`dgCMatrix`).}
+#'   \item{components}{Integer vector component id (length n). Isolates are their own components.}
+#'   \item{isolates}{Logical vector (length n).}
+#' }
+#'
+#' @export
+build_adjacency <- function(segments, crs_m = 3857, tol = 0, verbose = FALSE) {
+  if (!inherits(segments, "sf")) stop("`segments` must be an sf object.")
+  if (!is.numeric(crs_m) || length(crs_m) != 1L) stop("`crs_m` must be a single EPSG code (numeric).")
+  if (!is.numeric(tol) || length(tol) != 1L || tol < 0) stop("`tol` must be a single nonnegative number.")
+
+  n <- nrow(segments)
+  if (n == 0L) {
+    A <- Matrix::Matrix(0, 0, 0, sparse = TRUE)
+    return(list(A = A, components = integer(0), isolates = logical(0)))
+  }
+
+  gtype <- unique(as.character(sf::st_geometry_type(segments)))
+  if (length(setdiff(gtype, "LINESTRING")) > 0) {
+    stop("`segments` must have LINESTRING geometry (did you run roads_to_segments()?).")
+  }
+
+  # work in planar CRS for stable node keys
+  segs_work <- segments
+  if (isTRUE(sf::st_is_longlat(segs_work))) {
+    segs_work <- sf::st_transform(segs_work, crs_m)
+  }
+
+  # ensure index 1..n in the current row order
+  seg_index <- seq_len(n)
+
+  # extract endpoints for each LINESTRING
+  coords <- sf::st_coordinates(sf::st_geometry(segs_work))
+  # coords has columns X,Y and grouping columns L1 (feature id) and L2 (part id) if present
+  if (!("L1" %in% colnames(coords))) stop("Unexpected geometry coordinate structure from sf::st_coordinates().")
+
+  # for each feature (L1), take first and last vertex
+  split_by_feat <- split(seq_len(nrow(coords)), coords[, "L1"])
+  first_idx <- vapply(split_by_feat, function(ii) ii[1L], integer(1))
+  last_idx  <- vapply(split_by_feat, function(ii) ii[length(ii)], integer(1))
+
+  x1 <- coords[first_idx, "X"]; y1 <- coords[first_idx, "Y"]
+  x2 <- coords[last_idx,  "X"]; y2 <- coords[last_idx,  "Y"]
+
+  # build node keys with optional snapping
+  make_key <- function(x, y) {
+    if (tol > 0) {
+      x <- round(x / tol) * tol
+      y <- round(y / tol) * tol
+    }
+    paste0(formatC(x, digits = 15, format = "fg"), ",", formatC(y, digits = 15, format = "fg"))
+  }
+  k1 <- make_key(x1, y1)
+  k2 <- make_key(x2, y2)
+
+  # node -> segments incidence
+  keys <- c(k1, k2)
+  segs <- c(seg_index, seg_index)
+  node_map <- split(segs, keys)
+
+  # build adjacency edges from node incidence sets
+  ii_all <- integer(0)
+  jj_all <- integer(0)
+
+  for (nm in names(node_map)) {
+    s <- unique(node_map[[nm]])
+    k <- length(s)
+    if (k >= 2L) {
+      # all unordered pairs
+      cmb <- utils::combn(s, 2L)
+      ii_all <- c(ii_all, cmb[1L, ])
+      jj_all <- c(jj_all, cmb[2L, ])
+    }
+  }
+
+  # sparse adjacency; symmetrize; force 0 diagonal
+  if (length(ii_all) == 0L) {
+    A <- Matrix::Matrix(0, n, n, sparse = TRUE)
+  } else {
+    A <- Matrix::sparseMatrix(
+      i = ii_all, j = jj_all, x = 1,
+      dims = c(n, n), giveCsparse = TRUE
+    )
+    A <- A + Matrix::t(A)
+    A@x[A@x != 0] <- 1
+    Matrix::diag(A) <- 0
+  }
+
+  deg <- Matrix::rowSums(A != 0)
+  isolates <- (deg == 0)
+
+  # connected components (BFS) without igraph
+  # build adjacency list from sparse matrix
+  adj_list <- vector("list", n)
+  if (length(A@x) > 0L) {
+    sm <- summary(A) # i, j, x with 1-based indices
+    # split neighbors by i
+    adj_list <- split(sm$j, sm$i)
+    # ensure all entries exist
+    if (length(adj_list) < n) {
+      miss <- setdiff(seq_len(n), as.integer(names(adj_list)))
+      for (m in miss) adj_list[[as.character(m)]] <- integer(0)
+      adj_list <- adj_list[as.character(seq_len(n))]
+    } else {
+      adj_list <- adj_list[as.character(seq_len(n))]
+    }
+  } else {
+    for (i in seq_len(n)) adj_list[[i]] <- integer(0)
+  }
+
+  comp <- integer(n)
+  visited <- rep(FALSE, n)
+  comp_id <- 0L
+
+  for (v in seq_len(n)) {
+    if (!visited[v]) {
+      comp_id <- comp_id + 1L
+      # BFS/DFS stack
+      stack <- v
+      visited[v] <- TRUE
+      comp[v] <- comp_id
+      while (length(stack) > 0L) {
+        cur <- stack[[length(stack)]]
+        stack <- stack[-length(stack)]
+        nb <- adj_list[[cur]]
+        if (length(nb) > 0L) {
+          new_nb <- nb[!visited[nb]]
+          if (length(new_nb) > 0L) {
+            visited[new_nb] <- TRUE
+            comp[new_nb] <- comp_id
+            stack <- c(stack, new_nb)
+          }
+        }
+      }
+    }
+  }
+
+  if (verbose) {
+    message("Segments: ", n,
+            "; edges: ", if (length(ii_all) == 0L) 0 else nrow(utils::combn(integer(0), 2L)),
+            "; isolates: ", sum(isolates),
+            "; components: ", max(comp))
+  }
+
+  list(A = A, components = comp, isolates = isolates)
+}
+

@@ -330,3 +330,23 @@ test_that("dense complete graph runs (proper)", {
   expect_true(all(is.finite(fit$draws$beta)))
 })
 
+
+test_that("weighted adjacency runs", {
+  set.seed(12)
+
+  n <- 6
+  A <- matrix(0, n, n)
+  for (i in 1:(n - 1)) {
+    A[i, i + 1] <- 0.2 + i / 10
+    A[i + 1, i] <- 0.2 + i / 10
+  }
+
+  y <- as.double(rnorm(n))
+
+  fit <- fit_car(y, A, type = "proper", rho = 0.4, tau = 2,
+                 n_iter = 25, burn_in = 5, thin = 1)
+
+  expect_true(all(is.finite(fit$draws$sigma2)))
+})
+
+

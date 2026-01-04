@@ -13,3 +13,14 @@ test_that("prep_speed log transform + metadata works", {
   expect_true(all(bt >= 0))
   expect_equal(length(bt), length(x))
 })
+
+
+
+test_that("prep_speed handles adversarial inputs", {
+  expect_error(prep_speed("a"), "numeric")
+  expect_error(prep_speed(c(1, NA)), "finite")
+  expect_error(prep_speed(c(1, Inf)), "finite")
+  expect_error(prep_speed(c(-1, 2)), "nonnegative")
+  expect_error(prep_speed(c(1, 2), eps = 0), "eps")
+  expect_error(prep_speed(c(1, 2), eps = -1), "eps")
+})

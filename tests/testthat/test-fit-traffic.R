@@ -102,3 +102,34 @@ test_that("fit_traffic extreme numeric inputs do not break preprocessing", {
   expect_true(all(is.finite(out2$y)))
 })
 
+
+
+test_that("fit_traffic minimal integration run returns traffic_fit", {
+  skip_on_cran()
+
+  A <- matrix(0, 3, 3)
+  A[1,2] <- 1; A[2,1] <- 1
+  A[2,3] <- 1; A[3,2] <- 1
+
+  df <- data.frame(segment_id = 1:3, speed = c(10, 12, 11))
+
+  set.seed(1)
+  tf <- fit_traffic(
+    data = df,
+    A = A,
+    outcome = "speed",
+    transform = "log",
+    X = matrix(1, 3, 1),
+    type = "proper",
+    rho = 0.9,
+    tau = 1,
+    n_iter = 40,
+    burn_in = 10,
+    thin = 2,
+    verbose = FALSE
+  )
+
+  expect_s3_class(tf, "traffic_fit")
+  expect_true(is.matrix(tf$fit$draws$x))
+  expect_true(is.numeric(tf$fit$draws$sigma2))
+})

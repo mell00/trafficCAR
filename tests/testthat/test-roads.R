@@ -57,3 +57,21 @@ test_that("roads_to_segments drops empty/zero-length when drop_zero=TRUE", {
   expect_equal(nrow(segs), 1)
   expect_true(segs$length_m > 0)
 })
+
+
+test_that("roads_to_segments handles huge coordinates without overflow", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("units")
+
+  # very large planar coordinates still produce finite positive lengths
+  g <- sf::st_sfc(
+    sf::st_linestring(matrix(c(1e9, 1e9, 1e9 + 1e6, 1e9), ncol = 2, byrow = TRUE)),
+    crs = 3857
+  )
+  roads <- sf::st_sf(geometry = g)
+
+  segs <- roads_to_segments(roads)
+  expect_equal(nrow(segs), 1)
+  expect_true(is.finite(segs$length_m))
+  expect_gt(segs$length_m, 0)
+})

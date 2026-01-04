@@ -184,18 +184,18 @@ fit_traffic <- function(data,
     if (nrow(X) != n) stop("`X` must have nrow(data) rows.")
   }
 
-  # Require adjacency input explicitly unless your `fit_car()` can infer from roads.
-  if (is.null(A) && is.null(roads)) {
-    stop("Provide `A` (adjacency) or `roads` (if your `fit_car()` can derive adjacency).")
+  # require explicit adjacency
+  if (is.null(A)) {
+    stop("Provide `A` (adjacency). `roads` inference not implemented in fit_traffic().")
   }
 
-  # Call your existing fitter. Adjust arguments if your signature differs.
-  # Recommended convention: fit_car(y, A, X=..., ...)
-  base_fit <- if (!is.null(A)) {
-    fit_car(y = y, net_or_A = A, X = X, ...)
-  } else {
-    fit_car(y = y, net_or_A = roads, X = X, ...)
-  }
+  # call existing fitter
+  base_fit <- fit_car(
+    y = y,
+    A = A,
+    X = X,
+    ...
+  )
 
   out <- list(
     fit = base_fit,
@@ -210,6 +210,7 @@ fit_traffic <- function(data,
   class(out) <- c("traffic_fit", class(out))
   out
 }
+
 
 
 

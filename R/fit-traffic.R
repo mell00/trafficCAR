@@ -210,3 +210,15 @@ fit_traffic <- function(data,
   out
 }
 
+
+
+
+#' @export
+print.traffic_fit <- function(x, ...) {
+  cat("<traffic_fit>\n")
+  cat("  outcome: ", x$outcome, "\n", sep = "")
+  cat("  transform: ", x$transform_meta$transform, "\n", sep = "")
+  cat("  n: ", x$n, "\n", sep = "")
+  invisible(x)
+}
+

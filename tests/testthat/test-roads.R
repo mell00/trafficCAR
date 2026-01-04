@@ -75,3 +75,9 @@ test_that("roads_to_segments handles huge coordinates without overflow", {
   expect_true(is.finite(segs$length_m))
   expect_gt(segs$length_m, 0)
 })
+
+
+test_that("roads_to_segments rejects non-sf inputs", {
+  # 1-line: Non-sf inputs error cleanly.
+  expect_error(roads_to_segments(list(a = 1)), "sf", ignore.case = TRUE)
+})

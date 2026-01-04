@@ -74,3 +74,18 @@ test_that("augment_roads joins and adds posterior columns", {
   expect_equal(nrow(out), nrow(roads))
   expect_true(all(is.finite(out$fitted_mean)))
 })
+
+
+test_that("augment_roads rejects adversarial inputs", {
+  tf <- .make_fake_traffic_fit(n = 3, p = 1, S = 10)
+
+  expect_error(
+    augment_roads(tf, data.frame(other = 1:3)),
+    "join column"
+  )
+
+  tf_bad <- tf
+  tf_bad$X <- NULL
+  expect_error(augment_roads(tf_bad, data.frame(segment_id = 1:3)), "`fit\\$X`")
+})
+

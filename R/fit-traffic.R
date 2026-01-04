@@ -104,3 +104,109 @@ prep_travel_time <- function(travel_time,
 
   list(y = y, meta = meta)
 }
+
+
+
+
+#' Fit a Gaussian CAR traffic model (speed or travel time)
+#'
+#' This is a thin wrapper around \code{fit_car()} that:
+#' 1) preprocesses the outcome (log/per-distance options),
+#' 2) fits the Gaussian CAR model,
+#' 3) returns a traffic-flavored object that can be augmented back onto roads.
+#'
+#' @param data data.frame with at least `segment_id` and the outcome column.
+#' @param roads optional; an sf object or similar that contains adjacency info already
+#'   used by your `fit_car()` pipeline (depends on your package design).
+#' @param A adjacency matrix or object accepted by `fit_car()` (recommended explicit).
+#' @param segment_id_col character; column in `data` used to join back to roads.
+#' @param outcome character; one of "speed" or "travel_time".
+#' @param outcome_col optional character; if NULL uses `outcome`.
+#' @param distance_col optional character; used only for travel_time when per_distance=TRUE.
+#' @param per_distance logical; only for travel_time.
+#' @param transform character; "log" or "identity".
+#' @param X optional design matrix; if NULL, uses intercept-only.
+#' @param ... passed to `fit_car()` (e.g., type="proper"/"icar", rho, priors, n_iter, burn, etc.)
+#'
+#' @return An object of class `traffic_fit` containing the underlying fit and transform metadata.
+#' @export
+fit_traffic <- function(data,
+                        roads = NULL,
+                        A = NULL,
+                        segment_id_col = "segment_id",
+                        outcome = c("speed", "travel_time"),
+                        outcome_col = NULL,
+                        distance_col = NULL,
+                        per_distance = FALSE,
+                        transform = c("log", "identity"),
+                        X = NULL,
+                        ...) {
+  outcome <- match.arg(outcome)
+  transform <- match.arg(transform)
+
+  if (!is.data.frame(data)) stop("`data` must be a data.frame.")
+  if (!segment_id_col %in% names(data)) stop("`segment_id_col` not found in `data`.")
+  if (is.null(outcome_col)) outcome_col <- outcome
+  if (!outcome_col %in% names(data)) stop("`outcome_col` not found in `data`.")
+
+  seg_id <- data[[segment_id_col]]
+  if (anyNA(seg_id)) stop("segment IDs contain NA.")
+  # allow numeric/integer/character ids, but keep as-is for join keys
+  n <- nrow(data)
+
+  y_raw <- data[[outcome_col]]
+
+  if (outcome == "speed") {
+    prep <- prep_speed(y_raw, transform = transform)
+  } else {
+    dist <- NULL
+    if (!is.null(distance_col)) {
+      if (!distance_col %in% names(data)) stop("`distance_col` not found in `data`.")
+      dist <- data[[distance_col]]
+    }
+    prep <- prep_travel_time(
+      y_raw,
+      distance = dist,
+      per_distance = per_distance,
+      transform = transform
+    )
+  }
+
+  y <- prep$y
+  meta <- prep$meta
+
+  # default X: intercept-only
+  if (is.null(X)) {
+    X <- matrix(1, nrow = n, ncol = 1)
+    colnames(X) <- "(Intercept)"
+  } else {
+    if (!is.matrix(X) || !is.numeric(X)) stop("`X` must be a numeric matrix.")
+    if (nrow(X) != n) stop("`X` must have nrow(data) rows.")
+  }
+
+  # Require adjacency input explicitly unless your `fit_car()` can infer from roads.
+  if (is.null(A) && is.null(roads)) {
+    stop("Provide `A` (adjacency) or `roads` (if your `fit_car()` can derive adjacency).")
+  }
+
+  # Call your existing fitter. Adjust arguments if your signature differs.
+  # Recommended convention: fit_car(y, A, X=..., ...)
+  base_fit <- if (!is.null(A)) {
+    fit_car(y = y, net_or_A = A, X = X, ...)
+  } else {
+    fit_car(y = y, net_or_A = roads, X = X, ...)
+  }
+
+  out <- list(
+    fit = base_fit,
+    segment_id = seg_id,
+    segment_id_col = segment_id_col,
+    outcome = outcome,
+    outcome_col = outcome_col,
+    transform_meta = meta,
+    n = n
+  )
+  class(out) <- c("traffic_fit", class(out))
+  out
+}
+

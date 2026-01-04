@@ -221,3 +221,23 @@ test_that("build_adjacency links shared endpoints and returns isolates/component
   expect_true(out$components[3] != out$components[1])
 })
 
+
+
+test_that("build_adjacency snaps near-coincident endpoints when tol>0", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("Matrix")
+  skip_if_not_installed("units")
+
+  g <- sf::st_sfc(
+    sf::st_linestring(matrix(c(0,0, 1,0), ncol = 2, byrow = TRUE)),
+    sf::st_linestring(matrix(c(1 + 1e-6, 0, 2,0), ncol = 2, byrow = TRUE)),
+    crs = 3857
+  )
+  segs <- sf::st_sf(geometry = g)
+
+  out0 <- build_adjacency(segs, tol = 0)
+  out1 <- build_adjacency(segs, tol = 1e-3)
+
+  expect_equal(out0$A[1,2], 0)
+  expect_equal(out1$A[1,2], 1)
+})

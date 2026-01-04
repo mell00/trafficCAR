@@ -262,3 +262,24 @@ test_that("build_adjacency handles duplicate geometries without self-loops", {
   expect_equal(out$A[1,1], 0)
   expect_true(all(out$A@x %in% 1))
 })
+
+
+
+test_that("build_adjacency returns all isolates when no endpoints match", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("Matrix")
+  skip_if_not_installed("units")
+
+  g <- sf::st_sfc(
+    sf::st_linestring(matrix(c(0,0, 1,0), ncol = 2, byrow = TRUE)),
+    sf::st_linestring(matrix(c(0,2, 1,2), ncol = 2, byrow = TRUE)),
+    sf::st_linestring(matrix(c(0,4, 1,4), ncol = 2, byrow = TRUE)),
+    crs = 3857
+  )
+  segs <- sf::st_sf(geometry = g)
+
+  out <- build_adjacency(segs)
+  expect_equal(Matrix::nnzero(out$A), 0)
+  expect_true(all(out$isolates))
+  expect_equal(length(unique(out$components)), 3)
+})

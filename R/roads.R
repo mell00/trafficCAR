@@ -286,23 +286,54 @@ build_adjacency <- function(segments, crs_m = 3857, tol = 0, verbose = FALSE) {
     Matrix::diag(A) <- 0
   }
 
+  cc <- components_from_adjacency(A)
+  list(A = A, components = cc$components, isolates = cc$isolates)
+
+}
+
+
+
+
+
+
+
+#' Connected components and isolates from an adjacency matrix
+#'
+#' Computes connected component membership (1..K) and isolates (degree 0) from an
+#' undirected adjacency matrix. Intended for ICAR centering per component.
+#'
+#' @param A Square adjacency matrix (base matrix or `Matrix` sparse).
+#'
+#' @return A list with:
+#' \describe{
+#'   \item{components}{Integer vector of length n giving component id (1..K).}
+#'   \item{isolates}{Logical vector of length n, TRUE if degree 0.}
+#' }
+#'
+#' @keywords internal
+components_from_adjacency <- function(A) {
+  if (!(is.matrix(A) || inherits(A, "Matrix"))) stop("`A` must be a matrix or Matrix sparse object.")
+  if (nrow(A) != ncol(A)) stop("`A` must be square.")
+  n <- nrow(A)
+  if (n == 0L) return(list(components = integer(0), isolates = logical(0)))
+
+  if (!inherits(A, "Matrix")) A <- Matrix::Matrix(A, sparse = TRUE)
+
+  Matrix::diag(A) <- 0
+  A@x[A@x != 0] <- 1
+
   deg <- Matrix::rowSums(A != 0)
   isolates <- (deg == 0)
 
-  # connected components (BFS) without igraph
-  # build adjacency list from sparse matrix
+  # Build adjacency list from sparse summary robustly
   adj_list <- vector("list", n)
-
   if (Matrix::nnzero(A) > 0L) {
-    sm <- Matrix::summary(A)  # typically a matrix with cols i, j, x (1-based)
-    # coerce to matrix just in case
+    sm <- Matrix::summary(A)
     sm <- as.matrix(sm)
 
-    # column lookup robust to different Matrix versions
     col_i <- match("i", colnames(sm))
     col_j <- match("j", colnames(sm))
     if (is.na(col_i) || is.na(col_j)) {
-      # first two columns are i and j (fallback)
       col_i <- 1L
       col_j <- 2L
     }
@@ -312,19 +343,14 @@ build_adjacency <- function(segments, crs_m = 3857, tol = 0, verbose = FALSE) {
 
     adj_list <- split(jj, ii)
 
-    # check every index 1..n exists as a list element
-    if (length(adj_list) < n) {
-      present <- as.integer(names(adj_list))
-      miss <- setdiff(seq_len(n), present)
-      for (m in miss) adj_list[[as.character(m)]] <- integer(0)
-      adj_list <- adj_list[as.character(seq_len(n))]
-    } else {
-      adj_list <- adj_list[as.character(seq_len(n))]
-    }
+    # Ensure all indices exist
+    present <- as.integer(names(adj_list))
+    miss <- setdiff(seq_len(n), present)
+    for (m in miss) adj_list[[as.character(m)]] <- integer(0)
+    adj_list <- adj_list[as.character(seq_len(n))]
   } else {
     for (i in seq_len(n)) adj_list[[i]] <- integer(0)
   }
-
 
   comp <- integer(n)
   visited <- rep(FALSE, n)
@@ -333,10 +359,10 @@ build_adjacency <- function(segments, crs_m = 3857, tol = 0, verbose = FALSE) {
   for (v in seq_len(n)) {
     if (!visited[v]) {
       comp_id <- comp_id + 1L
-      # BFS/DFS stack
       stack <- v
       visited[v] <- TRUE
       comp[v] <- comp_id
+
       while (length(stack) > 0L) {
         cur <- stack[[length(stack)]]
         stack <- stack[-length(stack)]
@@ -353,13 +379,5 @@ build_adjacency <- function(segments, crs_m = 3857, tol = 0, verbose = FALSE) {
     }
   }
 
-  if (verbose) {
-    message("Segments: ", n,
-            "; edges: ", if (length(ii_all) == 0L) 0 else nrow(utils::combn(integer(0), 2L)),
-            "; isolates: ", sum(isolates),
-            "; components: ", max(comp))
-  }
-
-  list(A = A, components = comp, isolates = isolates)
+  list(components = comp, isolates = isolates)
 }
-

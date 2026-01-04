@@ -43,3 +43,17 @@ test_that("prep_travel_time per-distance + log works", {
   bt <- out$meta$inv(out$y)
   expect_true(all(bt >= 0))
 })
+
+
+
+test_that("prep_travel_time adversarial inputs", {
+  expect_error(prep_travel_time("a"), "numeric")
+  expect_error(prep_travel_time(c(1, NA)), "finite")
+  expect_error(prep_travel_time(c(-1, 2)), "nonnegative")
+  expect_error(prep_travel_time(c(1, 2), per_distance = TRUE), "requires")
+  expect_error(
+    prep_travel_time(c(1, 2), distance = c(0, 1), per_distance = TRUE),
+    "positive"
+  )
+  expect_error(prep_travel_time(c(1, 2), eps = 0), "eps")
+})

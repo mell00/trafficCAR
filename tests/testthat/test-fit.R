@@ -258,3 +258,36 @@ test_that("proper CAR handles disconnected graphs with no isolates", {
   expect_true(all(fit_p$draws$sigma2 > 0))
   expect_equal(ncol(fit_p$draws$x), n)
 })
+
+
+test_that("ICAR handles disconnected graphs with isolates", {
+  skip_if_not(exists("fit_car", mode = "function"))
+
+  set.seed(4)
+
+  n <- 7
+  A <- matrix(0, n, n)
+  # two small components + isolates
+  A[1, 2] <- 1; A[2, 1] <- 1
+  A[3, 4] <- 1; A[4, 3] <- 1
+  # isolates: 5,6,7
+
+  y <- as.double(rnorm(n))
+  X <- cbind(1, rnorm(n))
+
+  warned <- FALSE
+  fit_i <- withCallingHandlers(
+    fit_car(y, A, X = X, type = "icar", tau = 1,
+            n_iter = 25, burn_in = 5, thin = 1, center_icar = TRUE),
+    warning = function(w) {
+      warned <<- TRUE
+      expect_match(conditionMessage(w), "isolat|degree 0|singular", ignore.case = TRUE)
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_true(warned)
+
+  expect_true(all(is.finite(fit_i$draws$sigma2)))
+  expect_true(all(fit_i$draws$sigma2 > 0))
+  expect_equal(ncol(fit_i$draws$x), n)
+})

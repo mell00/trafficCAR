@@ -292,13 +292,30 @@ build_adjacency <- function(segments, crs_m = 3857, tol = 0, verbose = FALSE) {
   # connected components (BFS) without igraph
   # build adjacency list from sparse matrix
   adj_list <- vector("list", n)
-  if (length(A@x) > 0L) {
-    sm <- summary(A) # i, j, x with 1-based indices
-    # split neighbors by i
-    adj_list <- split(sm$j, sm$i)
-    # ensure all entries exist
+
+  if (Matrix::nnzero(A) > 0L) {
+    sm <- Matrix::summary(A)  # typically a matrix with cols i, j, x (1-based)
+    # coerce to matrix just in case
+    sm <- as.matrix(sm)
+
+    # column lookup robust to different Matrix versions
+    col_i <- match("i", colnames(sm))
+    col_j <- match("j", colnames(sm))
+    if (is.na(col_i) || is.na(col_j)) {
+      # first two columns are i and j (fallback)
+      col_i <- 1L
+      col_j <- 2L
+    }
+
+    ii <- as.integer(sm[, col_i])
+    jj <- as.integer(sm[, col_j])
+
+    adj_list <- split(jj, ii)
+
+    # check every index 1..n exists as a list element
     if (length(adj_list) < n) {
-      miss <- setdiff(seq_len(n), as.integer(names(adj_list)))
+      present <- as.integer(names(adj_list))
+      miss <- setdiff(seq_len(n), present)
       for (m in miss) adj_list[[as.character(m)]] <- integer(0)
       adj_list <- adj_list[as.character(seq_len(n))]
     } else {
@@ -307,6 +324,7 @@ build_adjacency <- function(segments, crs_m = 3857, tol = 0, verbose = FALSE) {
   } else {
     for (i in seq_len(n)) adj_list[[i]] <- integer(0)
   }
+
 
   comp <- integer(n)
   visited <- rep(FALSE, n)

@@ -39,3 +39,21 @@ test_that("roads_to_segments computes metric length for lon/lat via projection",
   expect_true(is.numeric(segs$length_m))
   expect_true(segs$length_m > 0)
 })
+
+
+test_that("roads_to_segments drops empty/zero-length when drop_zero=TRUE", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("units")
+
+  g <- sf::st_sfc(
+    sf::st_linestring(matrix(c(0,0, 0,0), ncol = 2, byrow = TRUE)), # zero length
+    sf::st_linestring(matrix(c(0,0, 1,0), ncol = 2, byrow = TRUE)), # ok
+    crs = 3857
+  )
+  roads <- sf::st_sf(geometry = g)
+
+  segs <- roads_to_segments(roads, drop_zero = TRUE)
+
+  expect_equal(nrow(segs), 1)
+  expect_true(segs$length_m > 0)
+})

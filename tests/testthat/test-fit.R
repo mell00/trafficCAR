@@ -313,3 +313,20 @@ test_that("n = 1 ICAR isolate runs", {
   expect_true(all(is.finite(fit$draws$x)))
 })
 
+
+
+test_that("dense complete graph runs (proper)", {
+  set.seed(11)
+
+  n <- 8
+  A <- matrix(1, n, n); diag(A) <- 0
+  y <- as.double(rnorm(n))
+  X <- cbind(1, rnorm(n))
+
+  fit <- fit_car(y, A, X = X, type = "proper", rho = 0.3, tau = 1,
+                 n_iter = 30, burn_in = 10, thin = 2)
+
+  expect_true(all(is.finite(fit$draws$x)))
+  expect_true(all(is.finite(fit$draws$beta)))
+})
+

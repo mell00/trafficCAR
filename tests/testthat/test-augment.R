@@ -89,3 +89,13 @@ test_that("augment_roads rejects adversarial inputs", {
   expect_error(augment_roads(tf_bad, data.frame(segment_id = 1:3)), "`fit\\$X`")
 })
 
+
+test_that("augment_roads handles NULL beta and extreme values", {
+  tf <- .make_fake_traffic_fit(n = 4, p = 1, S = 20)
+  tf$fit$draws$beta <- NULL
+  tf$fit$draws$x[1, ] <- c(-1e6, 0, 1e6, 1e-9)
+
+  out <- augment_roads(tf, data.frame(segment_id = 1:4))
+  expect_true(all(is.finite(out$mu_mean)))
+})
+

@@ -188,3 +188,21 @@ test_that("fit_car rejects invalid MCMC controls", {
   expect_error(fit_car(y, A, n_iter = 10, burn_in = -1), "burn_in", ignore.case = TRUE)
   expect_error(fit_car(y, A, thin = 0), "thin", ignore.case = TRUE)
 })
+
+
+test_that("fit_car rejects invalid hyperparameters", {
+  skip_if_not(exists("fit_car", mode = "function"))
+
+  y <- rnorm(3)
+  A <- diag(0, 3)
+
+  expect_error(fit_car(y, A, tau = 0), "tau", ignore.case = TRUE)
+  expect_error(fit_car(y, A, tau = -1), "tau", ignore.case = TRUE)
+  expect_error(fit_car(y, A, rho = NaN, type = "proper"), "rho", ignore.case = TRUE)
+
+  expect_error(fit_car(y, A, a0 = 0), "a0", ignore.case = TRUE)
+  expect_error(fit_car(y, A, b0_sigma = 0), "b0_sigma", ignore.case = TRUE)
+
+  expect_error(fit_car(y, A, sigma2_init = 0), "sigma2_init", ignore.case = TRUE)
+  expect_error(fit_car(y, A, sigma2_init = -1), "sigma2_init", ignore.case = TRUE)
+})

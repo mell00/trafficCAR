@@ -232,3 +232,29 @@ test_that("fit_car rejects invalid regression inputs and priors", {
   expect_error(fit_car(y, A, X = X, x_init = c(1, 2)), "x_init", ignore.case = TRUE)
   expect_error(fit_car(y, A, X = X, x_init = c(1, 2, NA, 4)), "x_init", ignore.case = TRUE)
 })
+
+
+test_that("proper CAR handles disconnected graphs with no isolates", {
+  skip_if_not(exists("fit_car", mode = "function"))
+
+  set.seed(4)
+
+  n <- 6
+  A <- matrix(0, n, n)
+  # component 1: 1-2-3 (no isolates)
+  A[1, 2] <- 1; A[2, 1] <- 1
+  A[2, 3] <- 1; A[3, 2] <- 1
+  # component 2: 4-5-6 (no isolates)
+  A[4, 5] <- 1; A[5, 4] <- 1
+  A[5, 6] <- 1; A[6, 5] <- 1
+
+  y <- as.double(rnorm(n))
+  X <- cbind(1, rnorm(n))
+
+  fit_p <- fit_car(y, A, X = X, type = "proper", rho = 0.4, tau = 1,
+                   n_iter = 25, burn_in = 5, thin = 1)
+
+  expect_true(all(is.finite(fit_p$draws$sigma2)))
+  expect_true(all(fit_p$draws$sigma2 > 0))
+  expect_equal(ncol(fit_p$draws$x), n)
+})

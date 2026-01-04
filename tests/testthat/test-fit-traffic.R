@@ -57,3 +57,29 @@ test_that("prep_travel_time adversarial inputs", {
   )
   expect_error(prep_travel_time(c(1, 2), eps = 0), "eps")
 })
+
+
+test_that("fit_traffic validates required columns and dimensions", {
+  A <- diag(3)
+  df <- data.frame(segment_id = 1:3, speed = c(5, 6, 7))
+
+  expect_error(
+    fit_traffic(data = df[, "speed", drop = FALSE], A = A),
+    "segment_id_col"
+  )
+
+  expect_error(
+    fit_traffic(data = df, A = A, outcome_col = "nope"),
+    "outcome_col"
+  )
+
+  expect_error(
+    fit_traffic(data = df, A = A, X = matrix(1, nrow = 2, ncol = 1)),
+    "nrow"
+  )
+
+  expect_error(
+    fit_traffic(data = df, A = NULL, roads = NULL),
+    "Provide"
+  )
+})

@@ -29,3 +29,15 @@
     class = "traffic_fit"
   )
 }
+
+
+test_that("extract_gaussian_draws accepts fit_car structure", {
+  tf <- .make_fake_traffic_fit(n = 3, p = 2, S = 10)
+  d <- .extract_gaussian_draws(tf$fit)
+
+  expect_true(is.matrix(d$x))
+  expect_true(is.matrix(d$beta))
+  expect_true(is.numeric(d$sigma2))
+  expect_equal(nrow(d$x), length(d$sigma2))
+})
+

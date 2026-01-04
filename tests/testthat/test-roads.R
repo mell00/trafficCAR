@@ -189,3 +189,35 @@ test_that("roads_to_segments splits at intersections when split_at_intersections
   expect_true(all(segs1$length_m > 0))
 })
 
+
+
+test_that("build_adjacency links shared endpoints and returns isolates/components", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("Matrix")
+  skip_if_not_installed("units")
+
+  g <- sf::st_sfc(
+    sf::st_linestring(matrix(c(0,0, 1,0), ncol = 2, byrow = TRUE)),  # seg 1
+    sf::st_linestring(matrix(c(1,0, 2,0), ncol = 2, byrow = TRUE)),  # seg 2 (touches seg 1 at (1,0))
+    sf::st_linestring(matrix(c(0,5, 1,5), ncol = 2, byrow = TRUE)),  # seg 3 isolate
+    crs = 3857
+  )
+  segs <- sf::st_sf(geometry = g)
+  segs$seg_id <- 1:3
+
+  out <- build_adjacency(segs)
+
+  expect_s4_class(out$A, "dgCMatrix")
+  expect_equal(dim(out$A), c(3, 3))
+  expect_equal(out$A[1,2], 1)
+  expect_equal(out$A[2,1], 1)
+  expect_equal(out$A[1,1], 0)
+  expect_true(out$isolates[3])
+  expect_false(out$isolates[1])
+  expect_false(out$isolates[2])
+
+  # components: (1,2) same; 3 alone
+  expect_equal(out$components[1], out$components[2])
+  expect_true(out$components[3] != out$components[1])
+})
+

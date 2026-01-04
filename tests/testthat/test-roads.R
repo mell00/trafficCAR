@@ -21,3 +21,21 @@ test_that("roads_to_segments explodes MULTILINESTRING and creates seg_id/length_
   expect_true(all(segs$length_m > 0))
   expect_true(all(as.character(sf::st_geometry_type(segs)) == "LINESTRING"))
 })
+
+
+test_that("roads_to_segments computes metric length for lon/lat via projection", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("units")
+
+  ls <- sf::st_sfc(
+    sf::st_linestring(matrix(c(-122.0, 37.0, -122.0, 37.001), ncol = 2, byrow = TRUE)),
+    crs = 4326
+  )
+  roads <- sf::st_sf(geometry = ls)
+
+  segs <- roads_to_segments(roads, crs_m = 3857)
+
+  expect_equal(nrow(segs), 1)
+  expect_true(is.numeric(segs$length_m))
+  expect_true(segs$length_m > 0)
+})

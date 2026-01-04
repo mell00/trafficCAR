@@ -283,3 +283,16 @@ test_that("build_adjacency returns all isolates when no endpoints match", {
   expect_true(all(out$isolates))
   expect_equal(length(unique(out$components)), 3)
 })
+
+
+
+test_that("build_adjacency rejects invalid inputs", {
+  expect_error(build_adjacency(list(a = 1)), "sf", ignore.case = TRUE)
+
+  skip_if_not_installed("sf")
+  skip_if_not_installed("Matrix")
+  pts <- sf::st_sfc(sf::st_point(c(0,0)), crs = 3857)
+  bad <- sf::st_sf(geometry = pts)
+  expect_error(build_adjacency(bad), "LINESTRING", ignore.case = TRUE)
+})
+

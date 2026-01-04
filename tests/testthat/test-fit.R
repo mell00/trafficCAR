@@ -149,3 +149,13 @@ testthat::test_that("fit_car supports no-regression case (X = NULL): beta draws 
   testthat::expect_equal(nrow(fit$draws$beta), length(seq.int(6, 20, by = 1)))
 })
 
+
+testthat::test_that("fit_car rejects invalid y", {
+  skip_if_not(exists("fit_car", mode = "function"))
+
+  A <- diag(0, 3)
+
+  testthat::expect_error(fit_car(y = c(1, NA, 3), A = A), "y", ignore.case = TRUE)
+  testthat::expect_error(fit_car(y = c(1, Inf, 3), A = A), "y", ignore.case = TRUE)
+  testthat::expect_error(fit_car(y = "bad", A = A), "y", ignore.case = TRUE)
+})

@@ -78,6 +78,16 @@ test_that("roads_to_segments handles huge coordinates without overflow", {
 
 
 test_that("roads_to_segments rejects non-sf inputs", {
-  # 1-line: Non-sf inputs error cleanly.
+  # non-sf inputs error cleanly
   expect_error(roads_to_segments(list(a = 1)), "sf", ignore.case = TRUE)
+})
+
+
+test_that("roads_to_segments rejects non-LINESTRING geometry types", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("units")
+
+  pts <- sf::st_sfc(sf::st_point(c(0, 0)), crs = 3857)
+  roads <- sf::st_sf(geometry = pts)
+  expect_error(roads_to_segments(roads), "LINESTRING|MULTILINESTRING", ignore.case = TRUE)
 })

@@ -168,3 +168,24 @@ test_that("roads_to_segments works on mixed LINESTRING + MULTILINESTRING input",
   expect_true(all(segs$length_m > 0))
 })
 
+
+test_that("roads_to_segments splits at intersections when split_at_intersections=TRUE", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("units")
+
+  g <- sf::st_sfc(
+    sf::st_linestring(matrix(c(-1, 0,  1, 0), ncol = 2, byrow = TRUE)),  # horizontal
+    sf::st_linestring(matrix(c( 0,-1,  0, 1), ncol = 2, byrow = TRUE)),  # vertical
+    crs = 3857
+  )
+  roads <- sf::st_sf(road_id = c("h", "v"), geometry = g)
+
+  segs0 <- roads_to_segments(roads, split_at_intersections = FALSE)
+  segs1 <- roads_to_segments(roads, split_at_intersections = TRUE)
+
+  expect_equal(nrow(segs0), 2)
+  expect_equal(nrow(segs1), 4)
+  expect_equal(segs1$seg_id, 1:4)
+  expect_true(all(segs1$length_m > 0))
+})
+

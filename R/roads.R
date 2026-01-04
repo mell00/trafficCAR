@@ -16,8 +16,9 @@
 #' @param keep_attrs Optional character vector of non-geometry columns to keep.
 #'   If `NULL`, keeps all attributes.
 #' @param drop_zero Logical; drop segments with non-positive length. Default TRUE.
-#' @param split_at_intersections Logical; if TRUE, split lines at all intersections
-#'   (requires package `lwgeom`). Default FALSE.
+#' @param split_at_intersections Logical; if TRUE, split lines at all intersections.
+#'   Implemented via GEOS noding (`sf::st_union` + `sf::st_cast`)
+#'   Default FALSE.
 #' @param verbose Logical; emit simple messages about dropped rows. Default FALSE.
 #'
 #' @return An `sf` with columns:
@@ -85,12 +86,8 @@ roads_to_segments <- function(roads,
 
   segs <- rbind(segs_ls, segs_mls)
 
-  # Optional: split lines at intersections ("noding")
+  # Optional: split lines at intersections (noding) using GEOS via st_union
   if (isTRUE(split_at_intersections)) {
-    if (!requireNamespace("lwgeom", quietly = TRUE)) {
-      stop("`split_at_intersections=TRUE` requires the 'lwgeom' package.")
-    }
-
     crs_out <- sf::st_crs(segs)
 
     # Work in planar/metric CRS for robust topology
@@ -100,25 +97,45 @@ roads_to_segments <- function(roads,
       segs_work <- segs
     }
 
-    # Node at all intersections (adds vertices at crossings)
-    geom_noded <- lwgeom::st_node(sf::st_geometry(segs_work))
-    segs_work <- sf::st_set_geometry(segs_work, geom_noded)
+    # Union nodes the linework at all intersections; attributes will be dropped here,
+    # so restore attributes by intersecting back with original features below.
+    u <- sf::st_union(sf::st_geometry(segs_work))
+    pieces <- sf::st_cast(u, "LINESTRING", warn = FALSE)
 
-    # Explode into individual LINESTRING pieces; attributes are replicated
-    segs_work <- sf::st_cast(segs_work, "LINESTRING", warn = FALSE)
+    # Wrap as sf for attribute restoration
+    pieces_sf <- sf::st_sf(piece_id = seq_along(pieces), geometry = pieces)
 
-    # Drop empty pieces that can appear after noding/casting
-    empty2 <- sf::st_is_empty(segs_work)
+    # Restore attributes, assign each piece to the original feature it intersects
+    idx <- sf::st_intersects(pieces_sf, segs_work)
+
+    if (length(idx) == 0L) {
+      segs_work2 <- pieces_sf
+    } else {
+      # deterministic choice: first intersecting original segment
+      pick <- vapply(idx, function(ii) if (length(ii) == 0L) NA_integer_ else ii[1L], integer(1))
+
+      keep <- !is.na(pick)
+      pieces_sf <- pieces_sf[keep, , drop = FALSE]
+      pick <- pick[keep]
+
+      # bind attributes from segs_work onto pieces
+      attr_cols <- setdiff(names(segs_work), attr(segs_work, "sf_column"))
+      segs_work2 <- cbind(segs_work[pick, attr_cols, drop = FALSE], pieces_sf)
+      sf::st_geometry(segs_work2) <- sf::st_geometry(pieces_sf)
+    }
+
+    # Drop empty pieces that can appear after union/cast
+    empty2 <- sf::st_is_empty(segs_work2)
     if (any(empty2)) {
       if (verbose) message("Dropping ", sum(empty2), " empty pieces after intersection splitting.")
-      segs_work <- segs_work[!empty2, , drop = FALSE]
+      segs_work2 <- segs_work2[!empty2, , drop = FALSE]
     }
 
     # Transform back to original CRS for output geometry
-    if (!is.na(crs_out$epsg)) {
-      segs <- sf::st_transform(segs_work, crs_out)
+    if (isTRUE(sf::st_is_longlat(segs))) {
+      segs <- sf::st_transform(segs_work2, crs_out)
     } else {
-      segs <- segs_work
+      segs <- segs_work2
       sf::st_crs(segs) <- crs_out
     }
   }
@@ -156,4 +173,3 @@ roads_to_segments <- function(roads,
 
   segs
 }
-

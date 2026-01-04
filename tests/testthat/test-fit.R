@@ -175,3 +175,16 @@ test_that("fit_car rejects invalid A (shape/type)", {
   A_badn <- matrix(0, 4, 4)
   expect_error(fit_car(y, A = A_badn), "length\\(y\\)", ignore.case = TRUE)
 })
+
+
+test_that("fit_car rejects invalid MCMC controls", {
+  skip_if_not(exists("fit_car", mode = "function"))
+
+  y <- rnorm(3)
+  A <- diag(0, 3)
+
+  expect_error(fit_car(y, A, n_iter = 0), "n_iter", ignore.case = TRUE)
+  expect_error(fit_car(y, A, n_iter = 10, burn_in = 10), "burn_in", ignore.case = TRUE)
+  expect_error(fit_car(y, A, n_iter = 10, burn_in = -1), "burn_in", ignore.case = TRUE)
+  expect_error(fit_car(y, A, thin = 0), "thin", ignore.case = TRUE)
+})

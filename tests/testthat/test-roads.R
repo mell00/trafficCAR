@@ -91,3 +91,21 @@ test_that("roads_to_segments rejects non-LINESTRING geometry types", {
   roads <- sf::st_sf(geometry = pts)
   expect_error(roads_to_segments(roads), "LINESTRING|MULTILINESTRING", ignore.case = TRUE)
 })
+
+
+test_that("roads_to_segments drops NA/empty geometries safely", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("units")
+
+  g <- sf::st_sfc(
+    sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+    sf::st_geometrycollection(),  # empty-ish
+    crs = 3857
+  )
+  roads <- sf::st_sf(geometry = g)
+
+  segs <- roads_to_segments(roads, verbose = FALSE)
+  expect_equal(nrow(segs), 1)
+  expect_equal(segs$seg_id, 1L)
+  expect_gt(segs$length_m, 0)
+})

@@ -23,7 +23,8 @@ Imports:
     Matrix,
     methods,
     units,
-    stats
+    stats,
+    graphics
 Suggests: 
     knitr,
     rmarkdown,

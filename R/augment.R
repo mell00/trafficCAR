@@ -145,6 +145,7 @@ augment_roads <- function(fit, roads, probs = c(0.025, 0.975), keep_geometry = T
 #'
 #' @param roads_aug sf object returned by augment_roads()
 #' @param fill character; column name to color by (default "fitted_mean")
+#' @importFrom graphics par
 #' @export
 plot_traffic_map <- function(roads_aug, fill = "fitted_mean") {
   if (!inherits(roads_aug, "sf")) stop("`roads_aug` must be an sf object.")

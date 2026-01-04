@@ -159,3 +159,19 @@ testthat::test_that("fit_car rejects invalid y", {
   testthat::expect_error(fit_car(y = c(1, Inf, 3), A = A), "y", ignore.case = TRUE)
   testthat::expect_error(fit_car(y = "bad", A = A), "y", ignore.case = TRUE)
 })
+
+
+testthat::test_that("fit_car rejects invalid A (shape/type)", {
+  skip_if_not(exists("fit_car", mode = "function"))
+
+  y <- rnorm(3)
+
+  testthat::expect_error(fit_car(y, A = NULL), "A", ignore.case = TRUE)
+  testthat::expect_error(fit_car(y, A = list()), "A", ignore.case = TRUE)
+
+  A_ns <- matrix(0, 3, 2)
+  testthat::expect_error(fit_car(y, A = A_ns), "square", ignore.case = TRUE)
+
+  A_badn <- matrix(0, 4, 4)
+  testthat::expect_error(fit_car(y, A = A_badn), "length\\(y\\)", ignore.case = TRUE)
+})

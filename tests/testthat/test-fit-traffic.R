@@ -83,3 +83,22 @@ test_that("fit_traffic validates required columns and dimensions", {
     "Provide"
   )
 })
+
+
+test_that("fit_traffic extreme numeric inputs do not break preprocessing", {
+  df1 <- data.frame(segment_id = 1:3, speed = c(0, 1e-12, 1e12))
+  out1 <- prep_speed(df1$speed, transform = "log", eps = 1e-6)
+  expect_true(all(is.finite(out1$y)))
+
+  df2 <- data.frame(
+    segment_id = 1:3,
+    travel_time = c(0, 1e-9, 1e9),
+    dist = c(1, 2, 3)
+  )
+  out2 <- prep_travel_time(
+    df2$travel_time, distance = df2$dist,
+    per_distance = TRUE, transform = "log", eps = 1e-6
+  )
+  expect_true(all(is.finite(out2$y)))
+})
+

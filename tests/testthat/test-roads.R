@@ -241,3 +241,24 @@ test_that("build_adjacency snaps near-coincident endpoints when tol>0", {
   expect_equal(out0$A[1,2], 0)
   expect_equal(out1$A[1,2], 1)
 })
+
+
+
+test_that("build_adjacency handles duplicate geometries without self-loops", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("Matrix")
+  skip_if_not_installed("units")
+
+  g <- sf::st_sfc(
+    sf::st_linestring(matrix(c(0,0, 1,0), ncol = 2, byrow = TRUE)),
+    sf::st_linestring(matrix(c(0,0, 1,0), ncol = 2, byrow = TRUE)),
+    crs = 3857
+  )
+  segs <- sf::st_sf(geometry = g)
+
+  out <- build_adjacency(segs)
+  expect_equal(out$A[1,2], 1)
+  expect_equal(out$A[2,1], 1)
+  expect_equal(out$A[1,1], 0)
+  expect_true(all(out$A@x %in% 1))
+})

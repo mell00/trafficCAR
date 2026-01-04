@@ -129,3 +129,21 @@ test_that("roads_to_segments drops zero/near-zero length segments", {
 })
 
 
+test_that("roads_to_segments keeps requested attrs only", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("units")
+
+  g <- sf::st_sfc(sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)), crs = 3857)
+  roads <- sf::st_sf(osm_id = 123, speed_lim = 35, geometry = g)
+
+  segs <- roads_to_segments(roads, keep_attrs = c("osm_id"))
+  expect_true("osm_id" %in% names(segs))
+  expect_false("speed_lim" %in% names(segs))
+
+  expect_error(
+    roads_to_segments(roads, keep_attrs = c("does_not_exist")),
+    "missing columns",
+    ignore.case = TRUE
+  )
+})
+

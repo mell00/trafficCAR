@@ -371,3 +371,26 @@ test_that("rank-deficient X runs", {
   expect_true(all(is.finite(fit$draws$beta)))
 })
 
+
+
+test_that("p > n runs", {
+  set.seed(14)
+
+  n <- 6
+  p <- 10
+  A <- matrix(0, n, n)
+  for (i in 1:(n - 1)) {
+    A[i, i + 1] <- 1
+    A[i + 1, i] <- 1
+  }
+
+  X <- matrix(rnorm(n * p), n, p)
+  y <- as.double(rnorm(n))
+
+  fit <- fit_car(y, A, X = X, type = "proper", rho = 0.5, tau = 1,
+                 n_iter = 20, burn_in = 5, thin = 1)
+
+  expect_equal(ncol(fit$draws$beta), p)
+  expect_true(all(is.finite(fit$draws$beta)))
+})
+

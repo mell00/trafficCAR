@@ -26,49 +26,59 @@ fit_car(
 )
 }
 \arguments{
-\item{y}{Numeric response vector of length n.}
+\item{y}{Numeric response vector of length \code{n}.}
 
-\item{A}{n x n adjacency/weight matrix (base matrix or Matrix sparse type).}
+\item{A}{Square \code{n x n} adjacency/weight matrix (base matrix or \code{Matrix}).
+Diagonal entries are ignored.}
 
-\item{X}{Optional n x p design matrix. If NULL, no regression is fit.}
+\item{X}{Optional \code{n x p} design matrix. If \code{NULL}, no regression is fit.}
 
-\item{type}{Either "icar" or "proper".}
+\item{type}{Either \code{"icar"} or \code{"proper"}.}
 
 \item{rho}{Spatial dependence parameter for proper CAR. Ignored for ICAR.}
 
-\item{tau}{Positive scalar precision multiplier for CAR/ICAR.}
+\item{tau}{Positive scalar precision multiplier.}
 
 \item{n_iter}{Total MCMC iterations.}
 
 \item{burn_in}{Number of initial iterations to discard.}
 
-\item{thin}{Keep every `thin`-th draw after burn-in.}
+\item{thin}{Keep every \code{thin}-th draw after burn-in.}
 
-\item{beta_init}{Optional initial beta (length p).}
+\item{beta_init}{Optional initial \eqn{\beta} (length \code{p}).}
 
-\item{x_init}{Optional initial latent field (length n).}
+\item{x_init}{Optional initial latent field \eqn{x} (length \code{n}).}
 
-\item{sigma2_init}{Optional initial sigma^2 (positive).}
+\item{sigma2_init}{Optional initial \eqn{\sigma^2} (positive scalar).}
 
-\item{b0}{Prior mean for beta (length p). Default 0.}
+\item{b0}{Prior mean for \eqn{\beta} (length \code{p}). Default is zero vector.}
 
-\item{B0}{Prior covariance for beta (p x p). Default large diagonal.}
+\item{B0}{Prior covariance for \eqn{\beta} (\code{p x p}). Default is large diagonal.}
 
-\item{a0, b0_sigma}{IG(a0, b0_sigma) prior parameters for sigma^2.}
+\item{a0}{Shape parameter for inverse-gamma prior on \eqn{\sigma^2}.}
 
-\item{center_icar}{Whether to enforce sum-to-zero per connected component for ICAR draws.}
+\item{b0_sigma}{Scale parameter for inverse-gamma prior on \eqn{\sigma^2}.}
 
-\item{verbose}{Whether to print a simple progress message every 10% of iterations.}
+\item{center_icar}{Logical; if \code{TRUE} and \code{type="icar"}, center \eqn{x}
+to sum-to-zero within each connected component.}
+
+\item{verbose}{Logical; print coarse progress updates.}
 }
 \value{
-An object of class "trafficCAR_fit" with MCMC draws and metadata.
+A list of class \code{"trafficCAR_fit"} with elements:
+\describe{
+  \item{\code{draws}}{List with MCMC draws \code{x}, \code{beta}, \code{sigma2}.}
+  \item{\code{keep}}{Iteration indices that were saved.}
+  \item{\code{type}, \code{rho}, \code{tau}}{Model hyperparameters used.}
+}
 }
 \description{
-Fits the model
-\deqn{y = X \beta + x + \epsilon,\quad \epsilon \sim N(0, \sigma^2 I)}
-with CAR/ICAR prior on latent field
-\deqn{x \sim N(0, Q^{-1}),\quad Q = \tau (D - \rho A)}
-where ICAR corresponds to \eqn{\rho = 1}. Sampling uses the full conditional
-\deqn{x \mid \cdot \sim N(Q_*^{-1} b,\; Q_*^{-1}),\quad Q_* = Q + \sigma^{-2} I}
-which is SPD even for ICAR once combined with the likelihood.
+Fits a Gaussian regression with a CAR/ICAR latent effect:
+\eqn{y = X\beta + x + \epsilon} with \eqn{\epsilon \sim N(0,\sigma^2 I)} and
+\eqn{x \sim N(0, Q^{-1})}, where \eqn{Q = \tau (D - \rho A)} and
+\eqn{D = diag(A 1)}. For ICAR, \eqn{\rho = 1}.
+}
+\details{
+The sampler updates \eqn{x}, \eqn{\beta} (if \code{X} is provided), and \eqn{\sigma^2}
+using Gibbs steps.
 }

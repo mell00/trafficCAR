@@ -1,32 +1,41 @@
 #' Fit Gaussian CAR / ICAR regression via Gibbs sampling
 #'
-#' Fits the model
-#' \deqn{y = X \beta + x + \epsilon,\quad \epsilon \sim N(0, \sigma^2 I)}
-#' with CAR/ICAR prior on latent field
-#' \deqn{x \sim N(0, Q^{-1}),\quad Q = \tau (D - \rho A)}
-#' where ICAR corresponds to \eqn{\rho = 1}. Sampling uses the full conditional
-#' \deqn{x \mid \cdot \sim N(Q_*^{-1} b,\; Q_*^{-1}),\quad Q_* = Q + \sigma^{-2} I}
-#' which is SPD even for ICAR once combined with the likelihood.
+#' Fits a Gaussian regression with a CAR/ICAR latent effect:
+#' \eqn{y = X\beta + x + \epsilon} with \eqn{\epsilon \sim N(0,\sigma^2 I)} and
+#' \eqn{x \sim N(0, Q^{-1})}, where \eqn{Q = \tau (D - \rho A)} and
+#' \eqn{D = diag(A 1)}. For ICAR, \eqn{\rho = 1}.
 #'
-#' @param y Numeric response vector of length n.
-#' @param A n x n adjacency/weight matrix (base matrix or Matrix sparse type).
-#' @param X Optional n x p design matrix. If NULL, no regression is fit.
-#' @param type Either "icar" or "proper".
+#' The sampler updates \eqn{x}, \eqn{\beta} (if \code{X} is provided), and \eqn{\sigma^2}
+#' using Gibbs steps.
+#'
+#' @param y Numeric response vector of length \code{n}.
+#' @param A Square \code{n x n} adjacency/weight matrix (base matrix or \code{Matrix}).
+#'   Diagonal entries are ignored.
+#' @param X Optional \code{n x p} design matrix. If \code{NULL}, no regression is fit.
+#' @param type Either \code{"icar"} or \code{"proper"}.
 #' @param rho Spatial dependence parameter for proper CAR. Ignored for ICAR.
-#' @param tau Positive scalar precision multiplier for CAR/ICAR.
+#' @param tau Positive scalar precision multiplier.
 #' @param n_iter Total MCMC iterations.
 #' @param burn_in Number of initial iterations to discard.
-#' @param thin Keep every `thin`-th draw after burn-in.
-#' @param beta_init Optional initial beta (length p).
-#' @param x_init Optional initial latent field (length n).
-#' @param sigma2_init Optional initial sigma^2 (positive).
-#' @param b0 Prior mean for beta (length p). Default 0.
-#' @param B0 Prior covariance for beta (p x p). Default large diagonal.
-#' @param a0,b0_sigma IG(a0, b0_sigma) prior parameters for sigma^2.
-#' @param center_icar Whether to enforce sum-to-zero per connected component for ICAR draws.
-#' @param verbose Whether to print a simple progress message every 10% of iterations.
+#' @param thin Keep every \code{thin}-th draw after burn-in.
+#' @param beta_init Optional initial \eqn{\beta} (length \code{p}).
+#' @param x_init Optional initial latent field \eqn{x} (length \code{n}).
+#' @param sigma2_init Optional initial \eqn{\sigma^2} (positive scalar).
+#' @param b0 Prior mean for \eqn{\beta} (length \code{p}). Default is zero vector.
+#' @param B0 Prior covariance for \eqn{\beta} (\code{p x p}). Default is large diagonal.
+#' @param a0 Shape parameter for inverse-gamma prior on \eqn{\sigma^2}.
+#' @param b0_sigma Scale parameter for inverse-gamma prior on \eqn{\sigma^2}.
+#' @param center_icar Logical; if \code{TRUE} and \code{type="icar"}, center \eqn{x}
+#'   to sum-to-zero within each connected component.
+#' @param verbose Logical; print coarse progress updates.
 #'
-#' @return An object of class "trafficCAR_fit" with MCMC draws and metadata.
+#' @return A list of class \code{"trafficCAR_fit"} with elements:
+#' \describe{
+#'   \item{\code{draws}}{List with MCMC draws \code{x}, \code{beta}, \code{sigma2}.}
+#'   \item{\code{keep}}{Iteration indices that were saved.}
+#'   \item{\code{type}, \code{rho}, \code{tau}}{Model hyperparameters used.}
+#' }
+#'
 #' @export
 fit_car <- function(
     y,

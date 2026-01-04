@@ -24,3 +24,22 @@ test_that("prep_speed handles adversarial inputs", {
   expect_error(prep_speed(c(1, 2), eps = 0), "eps")
   expect_error(prep_speed(c(1, 2), eps = -1), "eps")
 })
+
+
+
+test_that("prep_travel_time per-distance + log works", {
+  tt <- c(10, 20, 30)
+  d <- c(5, 10, 15)
+
+  out <- prep_travel_time(
+    tt, distance = d, per_distance = TRUE,
+    transform = "log", eps = 1e-6
+  )
+
+  expect_equal(out$meta$outcome, "travel_time")
+  expect_true(out$meta$per_distance)
+  expect_equal(out$meta$base, "travel_time_per_distance")
+
+  bt <- out$meta$inv(out$y)
+  expect_true(all(bt >= 0))
+})

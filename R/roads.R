@@ -6,15 +6,18 @@
 #' v1 behavior:
 #' * Drops Z/M dimensions
 #' * Casts MULTILINESTRING -> LINESTRING (one row per linestring)
+#' * Optionally splits at intersections (noding) when `split_at_intersections=TRUE`
 #' * Computes `length_m` in meters (projects if lon/lat)
 #' * Drops empty and (optionally) zero-length segments
 #'
 #' @param roads An `sf` object with LINESTRING or MULTILINESTRING geometries.
-#' @param crs_m Metric CRS used for length calculation when `roads` is lon/lat.
-#'   Default 3857. For best accuracy, pass an appropriate local UTM EPSG code.
+#' @param crs_m Metric CRS used for length calculation (and intersection splitting)
+#'   when `roads` is lon/lat. Default 3857. For best accuracy, pass a local UTM EPSG.
 #' @param keep_attrs Optional character vector of non-geometry columns to keep.
 #'   If `NULL`, keeps all attributes.
 #' @param drop_zero Logical; drop segments with non-positive length. Default TRUE.
+#' @param split_at_intersections Logical; if TRUE, split lines at all intersections
+#'   (requires package `lwgeom`). Default FALSE.
 #' @param verbose Logical; emit simple messages about dropped rows. Default FALSE.
 #'
 #' @return An `sf` with columns:
@@ -28,6 +31,7 @@ roads_to_segments <- function(roads,
                               crs_m = 3857,
                               keep_attrs = NULL,
                               drop_zero = TRUE,
+                              split_at_intersections = FALSE,
                               verbose = FALSE) {
   if (!inherits(roads, "sf")) stop("`roads` must be an sf object.")
   if (!is.numeric(crs_m) || length(crs_m) != 1L) stop("`crs_m` must be a single EPSG code (numeric).")
@@ -52,7 +56,6 @@ roads_to_segments <- function(roads,
     roads <- roads[!empty, , drop = FALSE]
   }
   if (nrow(roads) == 0L) {
-    # return empty sf with expected columns
     out <- roads
     out$seg_id <- integer(0)
     out$length_m <- numeric(0)
@@ -74,23 +77,60 @@ roads_to_segments <- function(roads,
   segs_ls <- if (any(is_ls)) roads[is_ls, , drop = FALSE] else roads[0, , drop = FALSE]
 
   # cast ONLY the MULTILINESTRING rows; casting a mixed sfc can drop parts
-  segs_mls <- if (any(is_mls)) sf::st_cast(roads[is_mls, , drop = FALSE], "LINESTRING", warn = FALSE) else roads[0, , drop = FALSE]
+  segs_mls <- if (any(is_mls)) {
+    sf::st_cast(roads[is_mls, , drop = FALSE], "LINESTRING", warn = FALSE)
+  } else {
+    roads[0, , drop = FALSE]
+  }
 
   segs <- rbind(segs_ls, segs_mls)
 
+  # Optional: split lines at intersections ("noding")
+  if (isTRUE(split_at_intersections)) {
+    if (!requireNamespace("lwgeom", quietly = TRUE)) {
+      stop("`split_at_intersections=TRUE` requires the 'lwgeom' package.")
+    }
+
+    crs_out <- sf::st_crs(segs)
+
+    # Work in planar/metric CRS for robust topology
+    if (isTRUE(sf::st_is_longlat(segs))) {
+      segs_work <- sf::st_transform(segs, crs_m)
+    } else {
+      segs_work <- segs
+    }
+
+    # Node at all intersections (adds vertices at crossings)
+    geom_noded <- lwgeom::st_node(sf::st_geometry(segs_work))
+    segs_work <- sf::st_set_geometry(segs_work, geom_noded)
+
+    # Explode into individual LINESTRING pieces; attributes are replicated
+    segs_work <- sf::st_cast(segs_work, "LINESTRING", warn = FALSE)
+
+    # Drop empty pieces that can appear after noding/casting
+    empty2 <- sf::st_is_empty(segs_work)
+    if (any(empty2)) {
+      if (verbose) message("Dropping ", sum(empty2), " empty pieces after intersection splitting.")
+      segs_work <- segs_work[!empty2, , drop = FALSE]
+    }
+
+    # Transform back to original CRS for output geometry
+    if (!is.na(crs_out$epsg)) {
+      segs <- sf::st_transform(segs_work, crs_out)
+    } else {
+      segs <- segs_work
+      sf::st_crs(segs) <- crs_out
+    }
+  }
 
   # Compute length in meters
-  g <- sf::st_geometry(segs)
   if (isTRUE(sf::st_is_longlat(segs))) {
-    # project for metric length
     segs_m <- sf::st_transform(segs, crs_m)
     len <- sf::st_length(segs_m)
   } else {
     len <- sf::st_length(segs)
   }
-  # Convert units to plain numeric meters
   len_m <- as.numeric(units::set_units(len, "m"))
-
   segs$length_m <- len_m
 
   # Drop zero/negative lengths (and any NA)
@@ -111,9 +151,9 @@ roads_to_segments <- function(roads,
   segs$seg_id <- seq_len(nrow(segs))
 
   # Put seg_id first
-  # (keep geometry + attributes + length)
   keep_order <- c("seg_id", "length_m", setdiff(names(segs), c("seg_id", "length_m")))
   segs <- segs[, keep_order, drop = FALSE]
 
   segs
 }
+

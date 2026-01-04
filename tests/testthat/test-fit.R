@@ -1,4 +1,4 @@
-testthat::test_that("fit_car basic smoke test runs and returns correct structure", {
+test_that("fit_car basic smoke test runs and returns correct structure", {
   skip_if_not(exists("fit_car", mode = "function"))
 
   set.seed(1)
@@ -27,7 +27,7 @@ testthat::test_that("fit_car basic smoke test runs and returns correct structure
     ),
     warning = function(w) {
       warned <<- TRUE
-      testthat::expect_match(
+      expect_match(
         conditionMessage(w),
         "isolat|degree 0|singular",
         ignore.case = TRUE
@@ -35,26 +35,26 @@ testthat::test_that("fit_car basic smoke test runs and returns correct structure
       invokeRestart("muffleWarning")
     }
   )
-  testthat::expect_true(warned)
+  expect_true(warned)
 
-  testthat::expect_s3_class(fit, "trafficCAR_fit")
-  testthat::expect_true(is.list(fit$draws))
-  testthat::expect_true(all(c("x", "beta", "sigma2") %in% names(fit$draws)))
+  expect_s3_class(fit, "trafficCAR_fit")
+  expect_true(is.list(fit$draws))
+  expect_true(all(c("x", "beta", "sigma2") %in% names(fit$draws)))
 
   n_keep <- length(seq.int(11, 50, by = 2))
-  testthat::expect_equal(dim(fit$draws$x), c(n_keep, n))
-  testthat::expect_equal(dim(fit$draws$beta), c(n_keep, ncol(X)))
-  testthat::expect_equal(length(fit$draws$sigma2), n_keep)
+  expect_equal(dim(fit$draws$x), c(n_keep, n))
+  expect_equal(dim(fit$draws$beta), c(n_keep, ncol(X)))
+  expect_equal(length(fit$draws$sigma2), n_keep)
 
-  testthat::expect_true(all(is.finite(fit$draws$x)))
-  testthat::expect_true(all(is.finite(fit$draws$beta)))
-  testthat::expect_true(all(is.finite(fit$draws$sigma2)))
-  testthat::expect_true(all(fit$draws$sigma2 > 0))
+  expect_true(all(is.finite(fit$draws$x)))
+  expect_true(all(is.finite(fit$draws$beta)))
+  expect_true(all(is.finite(fit$draws$sigma2)))
+  expect_true(all(fit$draws$sigma2 > 0))
 })
 
 
 
-testthat::test_that("fit_car reproducibility under set.seed", {
+test_that("fit_car reproducibility under set.seed", {
   skip_if_not(exists("fit_car", mode = "function"))
 
   n <- 5
@@ -73,13 +73,13 @@ testthat::test_that("fit_car reproducibility under set.seed", {
   set.seed(123)
   fit2 <- fit_car(y, A, X = X, type = "proper", rho = 0.5, tau = 1, n_iter = 30, burn_in = 10, thin = 1)
 
-  testthat::expect_equal(fit1$draws$sigma2, fit2$draws$sigma2)
-  testthat::expect_equal(fit1$draws$beta, fit2$draws$beta)
-  testthat::expect_equal(fit1$draws$x, fit2$draws$x)
+  expect_equal(fit1$draws$sigma2, fit2$draws$sigma2)
+  expect_equal(fit1$draws$beta, fit2$draws$beta)
+  expect_equal(fit1$draws$x, fit2$draws$x)
 })
 
 
-testthat::test_that("fit_car ICAR centering: sum-to-zero per connected component (including isolate)", {
+test_that("fit_car ICAR centering: sum-to-zero per connected component (including isolate)", {
   skip_if_not(exists("fit_car", mode = "function"))
 
   set.seed(2)
@@ -113,7 +113,7 @@ testthat::test_that("fit_car ICAR centering: sum-to-zero per connected component
       invokeRestart("muffleWarning")
     }
   )
-  testthat::expect_true(warned)
+  expect_true(warned)
 
   x_draws <- fit$draws$x
 
@@ -125,13 +125,13 @@ testthat::test_that("fit_car ICAR centering: sum-to-zero per connected component
   m2 <- rowMeans(x_draws[, comp2, drop = FALSE])
   m3 <- x_draws[, iso]
 
-  testthat::expect_true(max(abs(m1)) < 1e-10)
-  testthat::expect_true(max(abs(m2)) < 1e-10)
-  testthat::expect_true(max(abs(m3)) < 1e-10)
+  expect_true(max(abs(m1)) < 1e-10)
+  expect_true(max(abs(m2)) < 1e-10)
+  expect_true(max(abs(m3)) < 1e-10)
 })
 
 
-testthat::test_that("fit_car supports no-regression case (X = NULL): beta draws are 0-column", {
+test_that("fit_car supports no-regression case (X = NULL): beta draws are 0-column", {
   skip_if_not(exists("fit_car", mode = "function"))
 
   set.seed(3)
@@ -161,17 +161,17 @@ testthat::test_that("fit_car rejects invalid y", {
 })
 
 
-testthat::test_that("fit_car rejects invalid A (shape/type)", {
+test_that("fit_car rejects invalid A (shape/type)", {
   skip_if_not(exists("fit_car", mode = "function"))
 
   y <- rnorm(3)
 
-  testthat::expect_error(fit_car(y, A = NULL), "A", ignore.case = TRUE)
-  testthat::expect_error(fit_car(y, A = list()), "A", ignore.case = TRUE)
+  expect_error(fit_car(y, A = NULL), "A", ignore.case = TRUE)
+  expect_error(fit_car(y, A = list()), "A", ignore.case = TRUE)
 
   A_ns <- matrix(0, 3, 2)
-  testthat::expect_error(fit_car(y, A = A_ns), "square", ignore.case = TRUE)
+  expect_error(fit_car(y, A = A_ns), "square", ignore.case = TRUE)
 
   A_badn <- matrix(0, 4, 4)
-  testthat::expect_error(fit_car(y, A = A_badn), "length\\(y\\)", ignore.case = TRUE)
+  expect_error(fit_car(y, A = A_badn), "length\\(y\\)", ignore.case = TRUE)
 })

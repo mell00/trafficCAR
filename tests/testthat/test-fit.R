@@ -129,3 +129,23 @@ testthat::test_that("fit_car ICAR centering: sum-to-zero per connected component
   testthat::expect_true(max(abs(m2)) < 1e-10)
   testthat::expect_true(max(abs(m3)) < 1e-10)
 })
+
+
+testthat::test_that("fit_car supports no-regression case (X = NULL): beta draws are 0-column", {
+  skip_if_not(exists("fit_car", mode = "function"))
+
+  set.seed(3)
+  n <- 4
+  A <- matrix(0, n, n)
+  A[1, 2] <- 1; A[2, 1] <- 1
+  A[2, 3] <- 1; A[3, 2] <- 1
+  A[3, 4] <- 1; A[4, 3] <- 1
+
+  y <- as.double(rnorm(n))
+
+  fit <- fit_car(y, A, X = NULL, type = "proper", rho = 0.7, tau = 1, n_iter = 20, burn_in = 5, thin = 1)
+
+  testthat::expect_equal(ncol(fit$draws$beta), 0)
+  testthat::expect_equal(nrow(fit$draws$beta), length(seq.int(6, 20, by = 1)))
+})
+

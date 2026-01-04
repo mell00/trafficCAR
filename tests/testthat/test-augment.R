@@ -41,3 +41,19 @@ test_that("extract_gaussian_draws accepts fit_car structure", {
   expect_equal(nrow(d$x), length(d$sigma2))
 })
 
+
+test_that("extract_gaussian_draws rejects malformed inputs", {
+  expect_error(.extract_gaussian_draws(list(draws = NULL)), "draws")
+
+  expect_error(
+    .extract_gaussian_draws(list(draws = list(x = 1, beta = NULL, sigma2 = 1:3))),
+    "matrix"
+  )
+
+  expect_error(
+    .extract_gaussian_draws(list(draws = list(
+      x = matrix(0, 2, 3), beta = NULL, sigma2 = 1:3
+    ))),
+    "nrow"
+  )
+})

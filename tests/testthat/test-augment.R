@@ -57,3 +57,20 @@ test_that("extract_gaussian_draws rejects malformed inputs", {
     "nrow"
   )
 })
+
+
+test_that("augment_roads joins and adds posterior columns", {
+  tf <- .make_fake_traffic_fit(n = 5, p = 1, S = 30)
+  roads <- data.frame(segment_id = 1:5)
+
+  out <- augment_roads(tf, roads)
+
+  expect_true(all(c(
+    "x_mean","x_lo","x_hi",
+    "mu_mean","mu_lo","mu_hi",
+    "fitted_mean","fitted_lo","fitted_hi"
+  ) %in% names(out)))
+
+  expect_equal(nrow(out), nrow(roads))
+  expect_true(all(is.finite(out$fitted_mean)))
+})

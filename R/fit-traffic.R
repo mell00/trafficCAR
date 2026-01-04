@@ -199,6 +199,7 @@ fit_traffic <- function(data,
 
   out <- list(
     fit = base_fit,
+    X = X,
     segment_id = seg_id,
     segment_id_col = segment_id_col,
     outcome = outcome,

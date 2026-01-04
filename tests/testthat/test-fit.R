@@ -78,3 +78,54 @@ testthat::test_that("fit_car reproducibility under set.seed", {
   testthat::expect_equal(fit1$draws$x, fit2$draws$x)
 })
 
+
+testthat::test_that("fit_car ICAR centering: sum-to-zero per connected component (including isolate)", {
+  skip_if_not(exists("fit_car", mode = "function"))
+
+  set.seed(2)
+
+  n <- 6
+  A <- matrix(0, n, n)
+  # component 1: 1-2-3
+  A[1, 2] <- 1; A[2, 1] <- 1
+  A[2, 3] <- 1; A[3, 2] <- 1
+  # component 2: 4-5
+  A[4, 5] <- 1; A[5, 4] <- 1
+  # isolate: 6
+
+  y <- as.double(rnorm(n))
+
+  warned <- FALSE
+  fit <- withCallingHandlers(
+    fit_car(
+      y = y, A = A, X = NULL,
+      type = "icar", tau = 1,
+      n_iter = 40, burn_in = 10, thin = 1,
+      center_icar = TRUE
+    ),
+    warning = function(w) {
+      warned <<- TRUE
+      testthat::expect_match(
+        conditionMessage(w),
+        "isolat|degree 0|singular",
+        ignore.case = TRUE
+      )
+      invokeRestart("muffleWarning")
+    }
+  )
+  testthat::expect_true(warned)
+
+  x_draws <- fit$draws$x
+
+  comp1 <- 1:3
+  comp2 <- 4:5
+  iso <- 6
+
+  m1 <- rowMeans(x_draws[, comp1, drop = FALSE])
+  m2 <- rowMeans(x_draws[, comp2, drop = FALSE])
+  m3 <- x_draws[, iso]
+
+  testthat::expect_true(max(abs(m1)) < 1e-10)
+  testthat::expect_true(max(abs(m2)) < 1e-10)
+  testthat::expect_true(max(abs(m3)) < 1e-10)
+})

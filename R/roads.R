@@ -59,14 +59,25 @@ roads_to_segments <- function(roads,
     return(out[, c("seg_id", "length_m", setdiff(names(out), c("seg_id","length_m"))), drop = FALSE])
   }
 
-  # Cast to LINESTRING (explodes MULTILINESTRING into multiple rows)
-  geom_type <- unique(as.character(sf::st_geometry_type(roads)))
-  ok <- geom_type %in% c("LINESTRING", "MULTILINESTRING")
-  if (!all(ok)) {
+  # Cast to LINESTRING, safely handling mixed LINESTRING + MULTILINESTRING inputs
+  gtype <- as.character(sf::st_geometry_type(roads, by_geometry = TRUE))
+
+  bad_types <- setdiff(unique(gtype), c("LINESTRING", "MULTILINESTRING"))
+  if (length(bad_types) > 0) {
     stop("`roads` must have LINESTRING/MULTILINESTRING geometry. Found: ",
-         paste(geom_type[!geom_type %in% c("LINESTRING","MULTILINESTRING")], collapse = ", "))
+         paste(bad_types, collapse = ", "))
   }
-  segs <- sf::st_cast(roads, "LINESTRING", warn = FALSE)
+
+  is_ls  <- gtype == "LINESTRING"
+  is_mls <- gtype == "MULTILINESTRING"
+
+  segs_ls <- if (any(is_ls)) roads[is_ls, , drop = FALSE] else roads[0, , drop = FALSE]
+
+  # cast ONLY the MULTILINESTRING rows; casting a mixed sfc can drop parts
+  segs_mls <- if (any(is_mls)) sf::st_cast(roads[is_mls, , drop = FALSE], "LINESTRING", warn = FALSE) else roads[0, , drop = FALSE]
+
+  segs <- rbind(segs_ls, segs_mls)
+
 
   # Compute length in meters
   g <- sf::st_geometry(segs)

@@ -206,3 +206,29 @@ test_that("fit_car rejects invalid hyperparameters", {
   expect_error(fit_car(y, A, sigma2_init = 0), "sigma2_init", ignore.case = TRUE)
   expect_error(fit_car(y, A, sigma2_init = -1), "sigma2_init", ignore.case = TRUE)
 })
+
+
+
+test_that("fit_car rejects invalid regression inputs and priors", {
+  skip_if_not(exists("fit_car", mode = "function"))
+
+  y <- rnorm(4)
+  A <- diag(0, 4)
+
+  X_badn <- matrix(rnorm(6), nrow = 3)
+  expect_error(fit_car(y, A, X = X_badn), "nrow\\(X\\)", ignore.case = TRUE)
+
+  X_nf <- matrix(c(1, 2, NA, 4, 5, 6, 7, 8), nrow = 4)
+  expect_error(fit_car(y, A, X = X_nf), "X", ignore.case = TRUE)
+
+  X <- cbind(1, 1:4)
+
+  expect_error(fit_car(y, A, X = X, b0 = c(0, 0, 0)), "b0", ignore.case = TRUE)
+
+  B0_bad <- diag(1, 3)
+  expect_error(fit_car(y, A, X = X, B0 = B0_bad), "B0", ignore.case = TRUE)
+
+  expect_error(fit_car(y, A, X = X, beta_init = c(1, 2, 3)), "beta_init", ignore.case = TRUE)
+  expect_error(fit_car(y, A, X = X, x_init = c(1, 2)), "x_init", ignore.case = TRUE)
+  expect_error(fit_car(y, A, X = X, x_init = c(1, 2, NA, 4)), "x_init", ignore.case = TRUE)
+})

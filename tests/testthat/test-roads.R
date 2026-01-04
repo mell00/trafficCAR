@@ -296,3 +296,21 @@ test_that("build_adjacency rejects invalid inputs", {
   expect_error(build_adjacency(bad), "LINESTRING", ignore.case = TRUE)
 })
 
+
+test_that("components_from_adjacency returns isolates and singleton components correctly", {
+  skip_if_not_installed("Matrix")
+
+  A <- Matrix::sparseMatrix(
+    i = c(1, 2), j = c(2, 1), x = 1,
+    dims = c(3, 3), giveCsparse = TRUE
+  )
+  out <- components_from_adjacency(A)
+
+  expect_equal(length(out$components), 3)
+  expect_equal(length(unique(out$components)), 2)
+  expect_true(out$isolates[3])
+  expect_false(out$isolates[1])
+  expect_false(out$isolates[2])
+  expect_equal(out$components[1], out$components[2])
+})
+

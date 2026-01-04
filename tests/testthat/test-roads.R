@@ -147,3 +147,24 @@ test_that("roads_to_segments keeps requested attrs only", {
   )
 })
 
+
+test_that("roads_to_segments works on mixed LINESTRING + MULTILINESTRING input", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("units")
+
+  g <- sf::st_sfc(
+    sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+    sf::st_multilinestring(list(
+      matrix(c(1, 0, 1, 1), ncol = 2, byrow = TRUE),
+      matrix(c(1, 1, 2, 1), ncol = 2, byrow = TRUE)
+    )),
+    crs = 3857
+  )
+  roads <- sf::st_sf(kind = c("ls", "mls"), geometry = g)
+
+  segs <- roads_to_segments(roads)
+  expect_equal(nrow(segs), 3)
+  expect_equal(segs$seg_id, 1:3)
+  expect_true(all(segs$length_m > 0))
+})
+

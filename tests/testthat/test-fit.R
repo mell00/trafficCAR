@@ -53,3 +53,28 @@ testthat::test_that("fit_car basic smoke test runs and returns correct structure
 })
 
 
+
+testthat::test_that("fit_car reproducibility under set.seed", {
+  skip_if_not(exists("fit_car", mode = "function"))
+
+  n <- 5
+  A <- matrix(0, n, n)
+  A[1, 2] <- 1; A[2, 1] <- 1
+  A[2, 3] <- 1; A[3, 2] <- 1
+  A[3, 4] <- 1; A[4, 3] <- 1
+  A[4, 5] <- 1; A[5, 4] <- 1
+
+  X <- cbind(1, seq_len(n))
+  y <- as.double(rnorm(n))
+
+  set.seed(123)
+  fit1 <- fit_car(y, A, X = X, type = "proper", rho = 0.5, tau = 1, n_iter = 30, burn_in = 10, thin = 1)
+
+  set.seed(123)
+  fit2 <- fit_car(y, A, X = X, type = "proper", rho = 0.5, tau = 1, n_iter = 30, burn_in = 10, thin = 1)
+
+  testthat::expect_equal(fit1$draws$sigma2, fit2$draws$sigma2)
+  testthat::expect_equal(fit1$draws$beta, fit2$draws$beta)
+  testthat::expect_equal(fit1$draws$x, fit2$draws$x)
+})
+

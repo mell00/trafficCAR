@@ -291,3 +291,25 @@ test_that("ICAR handles disconnected graphs with isolates", {
   expect_true(all(fit_i$draws$sigma2 > 0))
   expect_equal(ncol(fit_i$draws$x), n)
 })
+
+
+test_that("n = 1 ICAR isolate runs", {
+  set.seed(10)
+
+  y <- 0.5
+  A <- matrix(0, 1, 1)
+
+  warned <- FALSE
+  fit <- withCallingHandlers(
+    fit_car(y, A, type = "icar", tau = 1, n_iter = 12, burn_in = 2, thin = 2, center_icar = TRUE),
+    warning = function(w) {
+      warned <<- TRUE
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  expect_true(warned)
+  expect_equal(ncol(fit$draws$x), 1)
+  expect_true(all(is.finite(fit$draws$x)))
+})
+

@@ -394,3 +394,30 @@ test_that("p > n runs", {
   expect_true(all(is.finite(fit$draws$beta)))
 })
 
+
+
+test_that("tau and sigma2_init extremes stay finite", {
+  set.seed(15)
+
+  n <- 10
+  A <- matrix(0, n, n)
+  for (i in 1:(n - 1)) {
+    A[i, i + 1] <- 1
+    A[i + 1, i] <- 1
+  }
+
+  y <- as.double(rnorm(n))
+
+  fit1 <- fit_car(y, A, type = "proper", rho = 0.4, tau = 1e-8,
+                  sigma2_init = 1e-8, n_iter = 20, burn_in = 5, thin = 1)
+
+  fit2 <- fit_car(y, A, type = "proper", rho = 0.4, tau = 1e8,
+                  sigma2_init = 1e6, n_iter = 20, burn_in = 5, thin = 1)
+
+  expect_true(all(is.finite(fit1$draws$x)))
+  expect_true(all(is.finite(fit1$draws$sigma2)))
+  expect_true(all(is.finite(fit2$draws$x)))
+  expect_true(all(is.finite(fit2$draws$sigma2)))
+})
+
+

@@ -28,28 +28,34 @@
 #' - beta_draws: matrix S x p (optional; if absent we treat X beta = 0)
 #' @keywords internal
 .extract_gaussian_draws <- function(base_fit) {
-  # common patterns:
-  # base_fit$draws$x or base_fit$x
-  x_draws <- NULL
-  beta_draws <- NULL
-  X <- NULL
-
-  if (!is.null(base_fit$draws) && is.list(base_fit$draws)) {
-    if (!is.null(base_fit$draws$x)) x_draws <- base_fit$draws$x
-    if (!is.null(base_fit$draws$beta)) beta_draws <- base_fit$draws$beta
+  if (is.null(base_fit$draws) || !is.list(base_fit$draws)) {
+    stop("Expected `fit$draws` to be a list with x/beta/sigma2 draws.")
   }
-  if (is.null(x_draws) && !is.null(base_fit$x)) x_draws <- base_fit$x
-  if (is.null(beta_draws) && !is.null(base_fit$beta)) beta_draws <- base_fit$beta
 
-  # design matrix might be stored too (optional)
-  if (!is.null(base_fit$X)) X <- base_fit$X
+  x_draws <- base_fit$draws$x
+  beta_draws <- base_fit$draws$beta
+  sigma2_draws <- base_fit$draws$sigma2
 
-  if (is.null(x_draws)) stop("Could not find x draws in `fit`. Expected `fit$draws$x` or `fit$x`.")
-  if (!is.matrix(x_draws)) stop("x draws must be a matrix (S x n).")
+  if (is.null(x_draws) || !is.matrix(x_draws)) {
+    stop("Expected `fit$draws$x` to be a matrix (S x n).")
+  }
 
-  if (!is.null(beta_draws) && !is.matrix(beta_draws)) stop("beta draws must be a matrix (S x p).")
+  if (!is.null(beta_draws) && !is.matrix(beta_draws)) {
+    stop("Expected `fit$draws$beta` to be a matrix (S x p) or NULL.")
+  }
 
-  list(x = x_draws, beta = beta_draws, X = X)
+  if (is.null(sigma2_draws) || !(is.numeric(sigma2_draws) && is.vector(sigma2_draws))) {
+    stop("Expected `fit$draws$sigma2` to be a numeric vector (length S).")
+  }
+
+  if (nrow(x_draws) != length(sigma2_draws)) {
+    stop("Inconsistent draws: nrow(x) must equal length(sigma2).")
+  }
+  if (!is.null(beta_draws) && nrow(beta_draws) != nrow(x_draws)) {
+    stop("Inconsistent draws: nrow(beta) must equal nrow(x).")
+  }
+
+  list(x = x_draws, beta = beta_draws, sigma2 = sigma2_draws)
 }
 
 
@@ -84,24 +90,17 @@ augment_roads <- function(fit, roads, probs = c(0.025, 0.975), keep_geometry = T
     stop("Segment id length does not match ncol(x draws).")
   }
 
-  # build X used for fitted mean; prefer extractor X, else assume intercept-only (0 already handled)
-  X <- draws$X
-  if (is.null(X)) {
-    # if `fit_car()` already stored X elsewhere, update extractor.
-    # assume intercept-only if beta missing; otherwise error.
-    if (!is.null(draws$beta)) stop("Have beta draws but no X found in fit; store X or pass through in `fit_car()`.")
-    mu_draws <- x_draws
+  X <- fit$X
+  if (!is.matrix(X) || nrow(X) != n) stop("`fit$X` is missing or wrong dimension.")
+
+  beta_draws <- draws$beta
+  if (is.null(beta_draws)) {
+    xb <- matrix(0, nrow = S, ncol = n)
   } else {
-    if (!is.matrix(X) || nrow(X) != n) stop("Extracted X is invalid or wrong dimension.")
-    beta_draws <- draws$beta
-    if (is.null(beta_draws)) {
-      xb <- matrix(0, nrow = S, ncol = n)
-    } else {
-      if (ncol(beta_draws) != ncol(X)) stop("beta draws p does not match ncol(X).")
-      xb <- beta_draws %*% t(X) # S x n
-    }
-    mu_draws <- xb + x_draws
+    if (ncol(beta_draws) != ncol(X)) stop("beta draws p does not match ncol(X).")
+    xb <- beta_draws %*% t(X) # S x n
   }
+  mu_draws <- xb + x_draws
 
   xs <- .summarize_draws(x_draws, probs = probs)
   mus <- .summarize_draws(mu_draws, probs = probs)

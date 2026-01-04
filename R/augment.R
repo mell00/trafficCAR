@@ -138,3 +138,30 @@ augment_roads <- function(fit, roads, probs = c(0.025, 0.975), keep_geometry = T
   }
   out
 }
+
+
+
+
+#' Quick map helper for augmented roads
+#'
+#' @param roads_aug sf object returned by augment_roads()
+#' @param fill character; column name to color by (default "fitted_mean")
+#' @export
+plot_traffic_map <- function(roads_aug, fill = "fitted_mean") {
+  if (!inherits(roads_aug, "sf")) stop("`roads_aug` must be an sf object.")
+  if (!fill %in% names(roads_aug)) stop("Column not found: ", fill)
+
+  # base plotting to avoid hard ggplot2 dependency
+  vals <- roads_aug[[fill]]
+  op <- par(mar = c(0, 0, 0, 0))
+  on.exit(par(op), add = TRUE)
+
+  # simple continuous palette
+  pal <- grDevices::colorRampPalette(c("navy", "skyblue", "yellow", "orange", "red"))
+  k <- 200
+  cuts <- stats::quantile(vals, probs = seq(0, 1, length.out = k + 1), na.rm = TRUE, names = FALSE)
+  idx <- findInterval(vals, vec = cuts, all.inside = TRUE)
+  cols <- pal(k)[idx]
+  plot(sf::st_geometry(roads_aug), col = cols, lwd = 2, axes = FALSE)
+  invisible(roads_aug)
+}

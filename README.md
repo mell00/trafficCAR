@@ -30,6 +30,41 @@ Core functionality includes:
 
 - Generating ICAR and proper CAR precision matrices
 
+## What the package offers
+
+- **Road and graph preparation**: Convert LINESTRING/MULTILINESTRING
+  road data to stable segment IDs with lengths (`roads_to_segments()`),
+  construct segment adjacency (`build_adjacency()`), and build a full
+  igraph-based road network (`build_network()`).
+
+- **Spatial weights and precision matrices**: Create binary or
+  row-standardized weight matrices (`weights_from_adjacency()`), build
+  intrinsic and proper CAR precision matrices (`car_precision()`), apply
+  Besag scaling (`intrinsic_car_precision()`), and impose sum-to-zero
+  constraints for ICAR components (`icar_sum_to_zero()`).
+
+- **Simulation utilities**: Sample from proper CAR latent Gaussian
+  models with Gibbs updates (`sample_proper_car()`) or draw from
+  multivariate normals with sparse precision matrices for custom
+  workflows (`rmvnorm_prec()`).
+
+- **Model fitting for traffic outcomes**: Fit Gaussian CAR/ICAR
+  regression models with optional covariates (`fit_car()`), or use
+  traffic-oriented wrappers that prepare speed and travel-time outcomes,
+  apply transformations, and return augmented fit objects
+  (`fit_traffic()`).
+
+- **Augmentation and visualization**: Attach fitted latent effects back
+  to road geometries for mapping (`augment_fit()` and
+  `augment_traffic_fit()`), create static plots
+  (`plot_traffic_static()`), and generate interactive leaflet maps
+  (`plot_traffic_interactive()`).
+
+- **Helper utilities**: Simplify road geometries while preserving
+  topology (`simplify_roads()`), compute connected components for ICAR
+  centering (`components_from_adjacency()`), and derive degree or
+  row-standardized matrices used across the CAR constructors.
+
 ## Installation
 
 The package is under development and not available on CRAN.  

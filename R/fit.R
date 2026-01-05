@@ -161,21 +161,23 @@ fit_car <- function(
 
   ## ---- Helpers -----------------------------------------------------------
   .components_from_A <- function(A) {
-    if (inherits(A, "Matrix") && !inherits(A, "dgCMatrix")) {
+
+    ## Force general sparse form
+    if (!inherits(A, "dgCMatrix")) {
       A <- as(A, "generalMatrix")
       A <- as(A, "dgCMatrix")
     }
 
     n <- nrow(A)
-    A0 <- Matrix::drop0(A)
-    diag(A0) <- 0
 
-    nz <- Matrix::summary(A0)
+    ## Extract nonzero structure safely
+    nz <- Matrix::summary(Matrix::drop0(A))
     adj <- vector("list", n)
 
     if (nrow(nz) > 0) {
       for (k in seq_len(nrow(nz))) {
-        i <- nz$i[k]; j <- nz$j[k]
+        i <- nz$i[k]
+        j <- nz$j[k]
         if (i != j) {
           adj[[i]] <- c(adj[[i]], j)
           adj[[j]] <- c(adj[[j]], i)
@@ -183,13 +185,16 @@ fit_car <- function(
       }
     }
 
+    ## Connected components via DFS
     comp <- integer(n)
     cid <- 0L
+
     for (s in seq_len(n)) {
       if (comp[s] != 0L) next
       cid <- cid + 1L
       stack <- s
       comp[s] <- cid
+
       while (length(stack) > 0) {
         v <- stack[[length(stack)]]
         stack <- stack[-length(stack)]
@@ -201,8 +206,11 @@ fit_car <- function(
         }
       }
     }
+
     comp
   }
+
+
 
   .center_by_component <- function(x, comp) {
     x2 <- x

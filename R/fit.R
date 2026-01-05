@@ -35,6 +35,7 @@
 #'   \item{\code{keep}}{Iteration indices that were saved.}
 #'   \item{\code{type}, \code{rho}, \code{tau}}{Model hyperparameters used.}
 #' }
+#' y = X beta + x + epsilon
 #'
 #' @export
 fit_car <- function(
@@ -57,83 +58,129 @@ fit_car <- function(
     center_icar = TRUE,
     verbose = FALSE
 ) {
+
+  ## ---- Normalize adjacency matrix ----------------------------------------
+  if (inherits(A, "Matrix")) {
+    if (!inherits(A, "dgCMatrix")) {
+      A <- as(A, "generalMatrix")
+      A <- as(A, "dgCMatrix")
+    }
+  } else if (is.matrix(A)) {
+    A <- Matrix::Matrix(A, sparse = TRUE)
+  } else {
+    stop("`A` must be a base matrix or a Matrix sparse type.")
+  }
+
   type <- match.arg(type)
 
-  # Validate inputs
-  # ----------------------------
-  if (!is.numeric(y) || any(!is.finite(y))) stop("`y` must be a finite numeric vector.")
+  ## ---- Validate y / dimensions -------------------------------------------
+  if (!is.numeric(y) || any(!is.finite(y)))
+    stop("`y` must be a finite numeric vector.")
   y <- as.double(y)
   n <- length(y)
 
-  if (is.null(A)) stop("`A` must be provided.")
-  if (!(inherits(A, "Matrix") || is.matrix(A))) stop("`A` must be a base matrix or a Matrix sparse type.")
+  ## x_init validation
+  if (!is.null(x_init)) {
+    if (!is.numeric(x_init) ||
+        length(x_init) != n ||
+        any(!is.finite(x_init))) {
+      stop("`x_init` must be a finite numeric vector of length n.")
+    }
+  }
+
   if (nrow(A) != ncol(A)) stop("`A` must be square.")
   if (nrow(A) != n) stop("`A` must have nrow(A) == length(y).")
 
-  if (!is.numeric(tau) || length(tau) != 1L || !is.finite(tau) || tau <= 0) stop("`tau` must be a positive scalar.")
-  if (!is.numeric(rho) || length(rho) != 1L || !is.finite(rho)) stop("`rho` must be a finite scalar.")
+  ## hyperparameters
+  if (!is.numeric(tau) || tau <= 0)
+    stop("`tau` must be positive.")
+  if (!is.numeric(rho) || !is.finite(rho))
+    stop("`rho` must be finite.")
 
-  if (!is.numeric(n_iter) || n_iter < 1) stop("`n_iter` must be >= 1.")
-  if (!is.numeric(burn_in) || burn_in < 0 || burn_in >= n_iter) stop("`burn_in` must be in {0, ..., n_iter-1}.")
-  if (!is.numeric(thin) || thin < 1) stop("`thin` must be >= 1.")
+  if (!is.numeric(n_iter) || n_iter < 1)
+    stop("`n_iter` must be >= 1.")
+  if (!is.numeric(burn_in) || burn_in < 0 || burn_in >= n_iter)
+    stop("`burn_in` must be in {0, ..., n_iter-1}.")
+  if (!is.numeric(thin) || thin < 1)
+    stop("`thin` must be >= 1.")
 
-  if (!is.numeric(a0) || length(a0) != 1L || a0 <= 0) stop("`a0` must be > 0.")
-  if (!is.numeric(b0_sigma) || length(b0_sigma) != 1L || b0_sigma <= 0) stop("`b0_sigma` must be > 0.")
+  if (!is.numeric(a0) || a0 <= 0)
+    stop("`a0` must be > 0.")
+  if (!is.numeric(b0_sigma) || b0_sigma <= 0)
+    stop("`b0_sigma` must be > 0.")
 
-  # X handling
+  ## X handling
   if (is.null(X)) {
     X <- matrix(0, nrow = n, ncol = 0)
   } else {
     if (!is.matrix(X)) X <- as.matrix(X)
-    if (nrow(X) != n) stop("`X` must have nrow(X) == length(y).")
-    if (!is.numeric(X) || any(!is.finite(X))) stop("`X` must be finite numeric.")
-    X <- apply(X, 2, as.double) # ensure double
-    X <- matrix(X, nrow = n)    # preserve shape for p=1
+    if (nrow(X) != n)
+      stop("`X` must have nrow(X) == length(y).")
+    if (!is.numeric(X) || any(!is.finite(X)))
+      stop("`X` must be finite numeric.")
+    X <- apply(X, 2, as.double)
+    X <- matrix(X, nrow = n)
   }
   p <- ncol(X)
 
-  # beta prior defaults
+  ## beta_init validation
+  if (!is.null(beta_init)) {
+    if (!is.numeric(beta_init) ||
+        length(beta_init) != p ||
+        any(!is.finite(beta_init))) {
+      stop("`beta_init` must be a finite numeric vector of length ncol(X).")
+    }
+  }
+
+  ## beta prior
   if (is.null(b0)) b0 <- rep(0, p)
-  if (length(b0) != p) stop("`b0` must have length ncol(X).")
+  if (length(b0) != p)
+    stop("`b0` must have length ncol(X).")
 
   if (p == 0) {
     B0 <- matrix(0, 0, 0)
   } else {
     if (is.null(B0)) {
-      B0 <- diag(1e6, p)  # diffuse covariance
+      B0 <- diag(1e6, p)
     } else {
       if (!is.matrix(B0)) B0 <- as.matrix(B0)
-      if (nrow(B0) != p || ncol(B0) != p) stop("`B0` must be p x p.")
-      if (!is.numeric(B0) || any(!is.finite(B0))) stop("`B0` must be finite numeric.")
+      if (nrow(B0) != p || ncol(B0) != p)
+        stop("`B0` must be p x p.")
     }
   }
 
-  # helpers
-  # ----------------------------
+  ## sigma2_init validation
+  if (!is.null(sigma2_init)) {
+    if (!is.numeric(sigma2_init) ||
+        length(sigma2_init) != 1L ||
+        !is.finite(sigma2_init) ||
+        sigma2_init <= 0) {
+      stop("`sigma2_init` must be a positive scalar.")
+    }
+  }
+
+  ## ---- Helpers -----------------------------------------------------------
   .components_from_A <- function(A) {
-    # returns integer component id per node, 1..K
+    if (inherits(A, "Matrix") && !inherits(A, "dgCMatrix")) {
+      A <- as(A, "generalMatrix")
+      A <- as(A, "dgCMatrix")
+    }
+
     n <- nrow(A)
-    # Build adjacency list from nonzeros (ignore diagonal)
-    if (inherits(A, "Matrix")) {
-      A0 <- Matrix::drop0(A)
-      A0 <- Matrix::forceSymmetric(A0, uplo = "U") # safe if user supplies symmetric; won’t fix asymmetric weights
-      A0@x[A0@i + 1L == A0@j] <- 0 # attempt ignore diagonal (may not catch all layouts)
-      nz <- Matrix::summary(A0)
-      # nz: i,j,x with 1-based indices
-      adj <- vector("list", n)
-      if (nrow(nz) > 0) {
-        for (k in seq_len(nrow(nz))) {
-          i <- nz$i[k]; j <- nz$j[k]
-          if (i != j) {
-            adj[[i]] <- c(adj[[i]], j)
-            adj[[j]] <- c(adj[[j]], i)
-          }
+    A0 <- Matrix::drop0(A)
+    diag(A0) <- 0
+
+    nz <- Matrix::summary(A0)
+    adj <- vector("list", n)
+
+    if (nrow(nz) > 0) {
+      for (k in seq_len(nrow(nz))) {
+        i <- nz$i[k]; j <- nz$j[k]
+        if (i != j) {
+          adj[[i]] <- c(adj[[i]], j)
+          adj[[j]] <- c(adj[[j]], i)
         }
       }
-    } else {
-      A0 <- A
-      diag(A0) <- 0
-      adj <- lapply(seq_len(n), function(i) which(A0[i, ] != 0))
     }
 
     comp <- integer(n)
@@ -141,15 +188,12 @@ fit_car <- function(
     for (s in seq_len(n)) {
       if (comp[s] != 0L) next
       cid <- cid + 1L
-      # BFS/DFS
       stack <- s
       comp[s] <- cid
       while (length(stack) > 0) {
         v <- stack[[length(stack)]]
         stack <- stack[-length(stack)]
-        nb <- adj[[v]]
-        if (length(nb) == 0) next
-        for (u in nb) {
+        for (u in adj[[v]]) {
           if (comp[u] == 0L) {
             comp[u] <- cid
             stack <- c(stack, u)
@@ -161,7 +205,6 @@ fit_car <- function(
   }
 
   .center_by_component <- function(x, comp) {
-    # subtract mean within each component
     x2 <- x
     for (k in unique(comp)) {
       idx <- which(comp == k)
@@ -172,30 +215,15 @@ fit_car <- function(
     x2
   }
 
-  # initialize
-  # ----------------------------
-  if (is.null(x_init)) x <- rep(0, n) else {
-    if (!is.numeric(x_init) || length(x_init) != n || any(!is.finite(x_init))) stop("`x_init` must be finite numeric length n.")
-    x <- as.double(x_init)
-  }
+  ## ---- Initialization ----------------------------------------------------
+  x <- if (is.null(x_init)) rep(0, n) else as.double(x_init)
+  beta <- if (p == 0) numeric(0) else if (is.null(beta_init)) as.double(b0) else as.double(beta_init)
 
-  if (p == 0) {
-    beta <- numeric(0)
-  } else if (is.null(beta_init)) {
-    beta <- as.double(b0)
+  sigma2 <- if (is.null(sigma2_init)) {
+    s2 <- stats::var(y)
+    if (!is.finite(s2) || s2 <= 0) 1 else s2
   } else {
-    if (!is.numeric(beta_init) || length(beta_init) != p || any(!is.finite(beta_init))) stop("`beta_init` must be finite numeric length p.")
-    beta <- as.double(beta_init)
-  }
-
-  if (is.null(sigma2_init)) {
-    sigma2 <- stats::var(y)
-    if (!is.finite(sigma2) || sigma2 <= 0) sigma2 <- 1
-  } else {
-    if (!is.numeric(sigma2_init) || length(sigma2_init) != 1L || !is.finite(sigma2_init) || sigma2_init <= 0) {
-      stop("`sigma2_init` must be a positive scalar.")
-    }
-    sigma2 <- as.double(sigma2_init)
+    as.double(sigma2_init)
   }
 
   comp <- NULL
@@ -203,56 +231,25 @@ fit_car <- function(
     comp <- .components_from_A(A)
   }
 
-  # allocate storage
-  # ----------------------------
+  ## ---- Storage -----------------------------------------------------------
   keep_idx <- seq.int(from = burn_in + 1L, to = n_iter, by = thin)
   n_keep <- length(keep_idx)
 
-  x_draws <- matrix(NA_real_, nrow = n_keep, ncol = n)
-  colnames(x_draws) <- paste0("x", seq_len(n))
+  x_draws <- matrix(NA_real_, n_keep, n)
+  beta_draws <- matrix(NA_real_, n_keep, p)
+  sigma2_draws <- numeric(n_keep)
 
-  beta_draws <- if (p > 0) {
-    m <- matrix(NA_real_, nrow = n_keep, ncol = p)
-    colnames(m) <- colnames(X) %||% paste0("beta", seq_len(p))
-    m
-  } else {
-    matrix(NA_real_, nrow = n_keep, ncol = 0)
-  }
-
-  sigma2_draws <- rep(NA_real_, n_keep)
-
-  # ----------------------------
-  # Precompute CAR precision
-  # ----------------------------
-  if (!exists("car_precision", mode = "function")) {
-    stop("Internal function `car_precision()` not found. Ensure it is defined and available.")
-  }
-  if (!exists("rmvnorm_prec", mode = "function")) {
-    stop("Internal function `rmvnorm_prec()` not found. Ensure it is defined and available.")
-  }
-  if (!exists("update_sigma2_ig", mode = "function")) {
-    stop("Internal function `update_sigma2_ig()` not found. Ensure it is defined and available.")
-  }
-  if (p > 0 && !exists("update_beta_gaussian", mode = "function")) {
-    stop("Internal function `update_beta_gaussian()` not found. Ensure it is defined and available.")
-  }
-
+  ## ---- Precision ---------------------------------------------------------
   Q_prior <- car_precision(A = A, type = type, rho = rho, tau = tau)
   if (!inherits(Q_prior, "Matrix")) {
-    # allow base matrix but prefer sparse
     Q_prior <- Matrix::Matrix(Q_prior, sparse = TRUE)
   }
-
   I_n <- Matrix::Diagonal(n)
 
-
-  # Gibbs sampler
-  # ----------------------------
+  ## ---- Gibbs sampler -----------------------------------------------------
   keep_pos <- 0L
-  progress_every <- max(1L, floor(n_iter / 10L))
-
   for (iter in seq_len(n_iter)) {
-    # x | rest
+
     r <- y
     if (p > 0) r <- r - drop(X %*% beta)
 
@@ -265,39 +262,26 @@ fit_car <- function(
       x <- .center_by_component(x, comp)
     }
 
-    # beta | rest
     if (p > 0) {
-      beta <- update_beta_gaussian(y = y, X = X, x = x, sigma2 = sigma2, b0 = b0, B0 = B0)
+      beta <- update_beta_gaussian(y, X, x, sigma2, b0, B0)
     }
 
-    # sigma2 | rest
-    sigma2 <- update_sigma2_ig(y = y, X = X, beta = beta, x = x, a0 = a0, b0 = b0_sigma)
+    sigma2 <- update_sigma2_ig(y, X, beta, x, a0, b0_sigma)
 
-    if (!is.finite(sigma2) || sigma2 <= 0) stop("Non-positive or non-finite sigma2 encountered during sampling.")
-
-    # store
     if (iter %in% keep_idx) {
       keep_pos <- keep_pos + 1L
       x_draws[keep_pos, ] <- x
       if (p > 0) beta_draws[keep_pos, ] <- beta
       sigma2_draws[keep_pos] <- sigma2
     }
-
-    if (isTRUE(verbose) && (iter %% progress_every == 0L)) {
-      message(sprintf("fit_car: %d / %d", iter, n_iter))
-    }
   }
 
   out <- list(
-    call = match.call(),
     type = type,
     rho = rho,
     tau = tau,
     n = n,
     p = p,
-    n_iter = n_iter,
-    burn_in = burn_in,
-    thin = thin,
     keep = keep_idx,
     draws = list(
       x = x_draws,
@@ -309,7 +293,6 @@ fit_car <- function(
   out
 }
 
-`%||%` <- function(a, b) if (!is.null(a)) a else b
 
 #' @export
 print.trafficCAR_fit <- function(x, ...) {

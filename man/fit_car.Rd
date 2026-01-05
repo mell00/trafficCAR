@@ -71,6 +71,7 @@ A list of class \code{"trafficCAR_fit"} with elements:
   \item{\code{keep}}{Iteration indices that were saved.}
   \item{\code{type}, \code{rho}, \code{tau}}{Model hyperparameters used.}
 }
+y = X beta + x + epsilon
 }
 \description{
 Fits a Gaussian regression with a CAR/ICAR latent effect:

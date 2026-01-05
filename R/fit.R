@@ -28,7 +28,7 @@
 #' @param center_icar Logical; if \code{TRUE} and \code{type="icar"}, center \eqn{x}
 #'   to sum-to-zero within each connected component.
 #' @param verbose Logical; print coarse progress updates.
-#'
+#'@importFrom methods as
 #' @return A list of class \code{"trafficCAR_fit"} with elements:
 #' \describe{
 #'   \item{\code{draws}}{List with MCMC draws \code{x}, \code{beta}, \code{sigma2}.}

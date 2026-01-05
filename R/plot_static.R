@@ -2,7 +2,7 @@
 #'
 #' @param sf_aug sf object with road geometries
 #' @param value_col numeric column to plot
-#'
+#' @importFrom rlang .data
 #' @return ggplot object
 #' @export
 plot_roads_static <- function(sf_aug, value_col) {

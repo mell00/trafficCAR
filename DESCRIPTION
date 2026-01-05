@@ -32,6 +32,9 @@ Suggests:
     osmdata,
     ggplot2,
     lwgeom,
+    leaflet,
+    viridisLite,
+    htmltools,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr

@@ -34,6 +34,7 @@ roads_to_segments <- function(roads,
                               drop_zero = TRUE,
                               split_at_intersections = FALSE,
                               verbose = FALSE) {
+  roads <- load_roads(roads)
   if (!inherits(roads, "sf")) stop("`roads` must be an sf object.")
   if (!is.numeric(crs_m) || length(crs_m) != 1L) stop("`crs_m` must be a single EPSG code (numeric).")
 

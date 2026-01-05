@@ -5,6 +5,7 @@ test_that("load_roads returns sf object unchanged", {
   expect_s3_class(out, "sf")
 })
 
+
 test_that("load_roads reads rda file", {
   data(roads_small, package = "trafficCAR")
   tmp <- tempfile(fileext = ".rda")
@@ -15,3 +16,9 @@ test_that("load_roads reads rda file", {
 })
 
 
+test_that("load_roads errors on unsupported input", {
+  expect_error(
+    trafficCAR:::load_roads(123),
+    "sf object or a file path"
+  )
+})

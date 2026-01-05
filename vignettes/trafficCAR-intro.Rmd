@@ -1,0 +1,200 @@
+---
+title: "trafficCAR-intro"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{trafficCAR-intro}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+`trafficCAR` provides tools for constructing **conditional autoregressive (CAR)**
+precision matrices on graphs derived from road networks. The package supports
+network creation from spatial linework, basic spatial weight construction, and
+proper/ICAR precision matrices that can be used in Gaussian hierarchical
+models.
+
+This vignette walks through a minimal workflow that uses the bundled example
+roads data to build a network, create spatial weights, and construct CAR/ICAR
+precision matrices suitable for simulation or modeling.
+
+## Load the package and example data
+
+The package ships with a small GeoJSON file representing a handful of road
+segments. We will read it with **sf** and feed it into the network builder.
+
+```{r}
+library(trafficCAR)
+library(Matrix)
+
+road_file <- system.file("extdata", "roads.geojson", package = "trafficCAR")
+if (!nzchar(road_file) || !file.exists(road_file)) {
+  stop("Example road data not found in inst/extdata.")
+}
+
+roads_sf <- sf::st_read(road_file, quiet = TRUE)
+```
+
+## Build a road network graph
+
+`build_network()` cleans the linework, projects it to a metric coordinate
+reference system, and returns a list containing nodes, edges, an igraph object,
+and a sparse adjacency matrix.
+
+```{r}
+net <- build_network(
+  roads_sf,
+  crs_out = 3857,
+  node_intersections = TRUE,
+  snap_tol = 0,
+  simplify = TRUE
+)
+
+c(
+  nodes = nrow(net$nodes),
+  edges = nrow(net$edges),
+  adjacency_nnz = Matrix::nnzero(net$A)
+)
+```
+
+The adjacency matrix encodes undirected connectivity between road nodes (one per
+unique endpoint). Self-loops and duplicate edges are removed when
+`simplify = TRUE`.
+
+## Spatial weights from the adjacency matrix
+
+You can work directly with the binary adjacency matrix or derive alternative
+weights. Row-standardizing the adjacency produces a matrix whose rows sum to 1
+for non-isolated nodes.
+
+```{r}
+W_row <- weights_from_adjacency(net$A, style = "row-standardized")
+
+# first few row sums (isolated nodes, if any, remain at 0)
+Matrix::rowSums(W_row)[1:6]
+```
+
+For CAR precision matrices we will use the binary adjacency `net$A` to keep the
+interpretation simple.
+
+## CAR and ICAR precision matrices
+
+With an adjacency in hand, CAR precision matrices follow the common form
+\(Q = \tau (D - \rho A)\), where \(D\) is the degree matrix. The helper
+`car_precision()` builds both proper and intrinsic variants.
+
+```{r}
+# Proper CAR with moderate spatial dependence
+Q_car <- car_precision(net$A, type = "proper", rho = 0.25, tau = 1)
+
+# Intrinsic CAR (ICAR) with optional Besag scaling
+Q_icar <- intrinsic_car_precision(net$A, tau = 1, scale = TRUE)
+
+Q_car[1:6, 1:6]
+Matrix::rankMatrix(Q_icar)
+```
+
+`Q_car` is sparse and positive definite for \(|\rho| < 1\) on graphs without
+isolated nodes. The ICAR precision `Q_icar` is singular with rank deficiency
+equal to the number of connected components; Besag scaling rescales it so that
+the geometric mean marginal variance is one.
+
+## Sampling from a CAR precision matrix
+
+`trafficCAR` includes an internal helper for drawing Gaussian random effects
+without forming a dense covariance matrix. This is useful for simulation studies
+or for checking that a chosen \(\rho\) produces sensible variability.
+
+```{r}
+set.seed(123)
+
+theta <- trafficCAR:::rmvnorm_prec(Q_car)
+c(mean = mean(theta), sd = sd(theta))
+```
+
+For ICAR models, a small ridge can be added before sampling to avoid numerical
+issues, followed by centering to enforce identifiability. This mirrors the
+approach shown in the sampling vignette.
+
+```{r}
+if (nrow(Q_icar) > 0) {
+  eps <- 1e-6
+  Q_icar_ridge <- Q_icar + Matrix::Diagonal(nrow(Q_icar), x = eps)
+
+  theta_icar <- trafficCAR:::rmvnorm_prec(Q_icar_ridge)
+  theta_icar <- theta_icar - mean(theta_icar)
+  summary(theta_icar)
+}
+```
+
+## Interactive road visualizations
+
+`trafficCAR` includes lightweight interactive mapping helpers built on
+**leaflet**. They visualize segment-level quantities (e.g., posterior means or
+predicted traffic levels) on the bundled example road network.
+
+The example below fabricates a simple score for each segment so the map can be
+rendered without running a full model. When knitting with the optional
+dependencies installed (`leaflet` and `viridisLite`), `map_roads_interactive()`
+produces an interactive widget with tooltips and a continuous legend.
+
+```{r}
+road_file <- system.file("extdata", "roads.geojson", package = "trafficCAR")
+roads_sf <- sf::st_read(road_file, quiet = TRUE)
+
+# mock segment-level values (replace with posterior summaries in real workflows)
+set.seed(123)
+roads_sf$traffic_score <- runif(nrow(roads_sf), min = 0, max = 1)
+
+has_leaflet <- requireNamespace("leaflet", quietly = TRUE) &&
+  requireNamespace("viridisLite", quietly = TRUE)
+
+if (has_leaflet) {
+  map_roads_interactive(roads_sf, value_col = "traffic_score")
+} else {
+  message("Install 'leaflet' and 'viridisLite' to view the interactive map.")
+}
+```
+
+You can also expose multiple layers (e.g., mean and interval width) using
+`map_roads_interactive_layers()`. Here we create a synthetic interval width and
+enable a layers control so readers can toggle between the two overlays.
+
+```{r}
+# mock interval width derived from the fabricated score
+roads_sf$interval_width <- pmax(0, roads_sf$traffic_score - 0.5)
+
+if (has_leaflet) {
+  map_roads_interactive_layers(
+    roads_sf,
+    layers = c("Score" = "traffic_score", "Interval width" = "interval_width")
+  )
+}
+
+```
+
+## Takeaways
+
+- `build_network()` converts road linework to a graph with adjacency and edge
+  metadata.
+- `weights_from_adjacency()` can produce binary or row-standardized weights.
+- `car_precision()` and `intrinsic_car_precision()` create sparse CAR/ICAR
+  precision matrices ready for modeling.
+- The internal sampler `rmvnorm_prec()` enables quick Gaussian draws from those
+  precision matrices without forming covariances.
+
+## Further directions
+
+Planned extensions include:
+
+- Poisson and negative binomial models for traffic volume
+- Layered interactive maps (raw vs modeled traffic)
+- Shiny applications for time-varying traffic data

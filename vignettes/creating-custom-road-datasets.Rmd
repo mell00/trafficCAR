@@ -1,0 +1,225 @@
+---
+title: "Creating Custom Road Datasets with trafficCAR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Creating Custom Road Datasets with trafficCAR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---  
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Overview
+
+This vignette is written for **users of `trafficCAR`** who want to work with
+road networks beyond the bundled examples.
+
+You will learn how to:
+
+1. Obtain road network data for a city
+2. Save it as a GeoJSON file
+3. Convert the GeoJSON into an `.rda` dataset (recommended)
+4. Organize multiple city datasets (small / medium / large)
+5. Use the datasets with `trafficCAR`
+
+The recommended workflow is:
+
+> **GeoJSON (raw, portable) → `.rda` (fast, CRAN-friendly)**
+
+---
+
+## Step 1: Obtain road data for a city
+
+A common source of road data is **OpenStreetMap**, accessed via the `osmdata`
+package.
+
+```{r}
+library(osmdata)
+library(sf)
+```
+
+Choose a city name or bounding box.
+
+```{r}
+city <- "Madison, Wisconsin, USA"
+
+q <- opq(city) |>
+  add_osm_feature(key = "highway")
+
+osm <- osmdata_sf(q)
+```
+
+Extract road geometries:
+
+```{r}
+roads <- osm$osm_lines
+```
+
+At this point, `roads` is an `sf` object with LINESTRING/MULTILINESTRING
+geometries.
+
+---
+
+## Step 2: Clean and inspect geometries
+
+It is recommended to keep only a small number of attributes.
+
+```{r}
+roads <- roads[, c("highway", "name", "geometry")]
+unique(st_geometry_type(roads))
+```
+
+Only `LINESTRING` and `MULTILINESTRING` geometries are supported by
+`trafficCAR`.
+
+---
+
+## Step 3: Write the dataset to GeoJSON
+
+Save the road network to a GeoJSON file.
+
+```{r}
+st_write(
+  roads,
+  "roads_madison.geojson",
+  delete_dsn = TRUE,
+  quiet = TRUE
+)
+```
+
+This file is:
+- human-readable
+- portable outside R
+- suitable as a long-term raw data source
+
+---
+
+## Step 4: Convert GeoJSON to `.rda` (recommended)
+
+For regular use with `trafficCAR`, convert GeoJSON to `.rda`.
+This provides faster loading and avoids file I/O in examples.
+
+```{r}
+library(usethis)
+
+roads_madison <- st_read("roads_madison.geojson", quiet = TRUE)
+use_data(roads_madison, overwrite = TRUE)
+```
+
+This creates:
+
+```
+data/roads_madison.rda
+```
+
+You can now load the dataset with:
+
+```{r}
+data(roads_madison)
+```
+
+---
+
+## Step 5: Use the dataset in trafficCAR
+
+```{r}
+library(trafficCAR)
+
+segs <- roads_to_segments(
+  roads_madison,
+  split_at_intersections = TRUE
+)
+
+adj <- build_adjacency(segs)
+```
+
+The resulting segments and adjacency matrix can be used directly in
+model fitting.
+
+---
+
+## Organizing multiple city datasets (small / medium / large)
+
+When working with multiple cities or scales, a consistent naming convention
+is strongly recommended.
+
+### Suggested naming scheme
+
+Use both **city** and **scale** in the object name:
+
+```
+roads_<city>_<scale>
+```
+
+Examples:
+- `roads_madison_small`
+- `roads_madison_medium`
+- `roads_madison_large`
+- `roads_chicago_small`
+
+### Example directory layout
+
+```
+inst/extdata/
+  roads_madison_small.geojson
+  roads_madison_medium.geojson
+  roads_madison_large.geojson
+
+data-raw/
+  roads_madison_small.R
+  roads_madison_medium.R
+  roads_madison_large.R
+
+data/
+  roads_madison_small.rda
+  roads_madison_medium.rda
+  roads_madison_large.rda
+```
+
+Each `data-raw/*.R` file should contain exactly one dataset and one call to
+`use_data()`.
+
+### Example `data-raw` script
+
+```{r eval=FALSE}
+library(sf)
+library(usethis)
+
+roads_madison_small <- st_read(
+  "inst/extdata/roads_madison_small.geojson",
+  quiet = TRUE
+)
+
+use_data(roads_madison_small, overwrite = TRUE)
+```
+
+---
+
+## Using external GeoJSON files directly
+
+The following example shows how a **user project** (outside the package)
+may pass a GeoJSON file path directly. This code is shown for illustration
+only and is **not run** when building the vignette.
+
+```{r eval=FALSE}
+segs <- roads_to_segments("roads_madison.geojson")
+```
+
+Within the package itself (examples and vignettes), `.rda` datasets are used
+to avoid file I/O and ensure CRAN compatibility.
+
+---
+
+## Summary
+
+- Use **GeoJSON** as the authoritative raw format
+- Convert to **`.rda`** for routine use with `trafficCAR`
+- Adopt a clear naming scheme for multiple cities and scales
+- Load `.rda` datasets in examples and vignettes
+
+This workflow keeps projects reproducible, scalable, and CRAN-friendly.

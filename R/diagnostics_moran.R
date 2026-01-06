@@ -37,8 +37,18 @@ moran_residuals <- function(fit,
 
   r_cent <- r - mean(r)
   denom <- sum(r_cent^2)
+  if (denom == 0) {
+    out <- list(
+      I = NA_real_,
+      p_value = NA_real_,
+      type = type,
+      method = method,
+      n = length(r)
+    )
+    class(out) <- "traffic_moran"
+    return(out)
+  }
 
-  if (denom == 0) stop("Residual variance is zero.")
 
   num <- as.numeric(crossprod(r_cent, W %*% r_cent))
   S0 <- sum(W)

@@ -46,7 +46,7 @@ library(sf)
 Choose a city name or bounding box.
 
 ```{r}
-city <- "Madison, Wisconsin, USA"
+city <- "College Station, Texas, USA"
 
 q <- opq(city) |>
   add_osm_feature(key = "highway")
@@ -86,7 +86,7 @@ Save the road network to a GeoJSON file.
 ```{r}
 st_write(
   roads,
-  "roads_madison.geojson",
+  "roads_cstat.geojson",
   delete_dsn = TRUE,
   quiet = TRUE
 )
@@ -107,20 +107,20 @@ This provides faster loading and avoids file I/O in examples.
 ```{r}
 library(usethis)
 
-roads_madison <- st_read("roads_madison.geojson", quiet = TRUE)
-use_data(roads_madison, overwrite = TRUE)
+roads_cstat <- st_read("roads_cstat.geojson", quiet = TRUE)
+use_data(roads_cstat, overwrite = TRUE)
 ```
 
 This creates:
 
 ```
-data/roads_madison.rda
+data/roads_cstat.rda
 ```
 
 You can now load the dataset with:
 
 ```{r}
-data(roads_madison)
+data(roads_cstat)
 ```
 
 ---
@@ -131,7 +131,7 @@ data(roads_madison)
 library(trafficCAR)
 
 segs <- roads_to_segments(
-  roads_madison,
+  roads_cstat,
   split_at_intersections = TRUE
 )
 
@@ -157,28 +157,28 @@ roads_<city>_<scale>
 ```
 
 Examples:
-- `roads_madison_small`
-- `roads_madison_medium`
-- `roads_madison_large`
+- `roads_cstat_small`
+- `roads_cstat_medium`
+- `roads_cstat_large`
 - `roads_chicago_small`
 
 ### Example directory layout
 
 ```
 inst/extdata/
-  roads_madison_small.geojson
-  roads_madison_medium.geojson
-  roads_madison_large.geojson
+  roads_cstat_small.geojson
+  roads_cstat_medium.geojson
+  roads_cstat_large.geojson
 
 data-raw/
-  roads_madison_small.R
-  roads_madison_medium.R
-  roads_madison_large.R
+  roads_cstat_small.R
+  roads_cstat_medium.R
+  roads_cstat_large.R
 
 data/
-  roads_madison_small.rda
-  roads_madison_medium.rda
-  roads_madison_large.rda
+  roads_cstat_small.rda
+  roads_cstat_medium.rda
+  roads_cstat_large.rda
 ```
 
 Each `data-raw/*.R` file should contain exactly one dataset and one call to
@@ -190,12 +190,12 @@ Each `data-raw/*.R` file should contain exactly one dataset and one call to
 library(sf)
 library(usethis)
 
-roads_madison_small <- st_read(
-  "inst/extdata/roads_madison_small.geojson",
+roads_cstat_small <- st_read(
+  "inst/extdata/roads_cstat_small.geojson",
   quiet = TRUE
 )
 
-use_data(roads_madison_small, overwrite = TRUE)
+use_data(roads_cstat_small, overwrite = TRUE)
 ```
 
 ---
@@ -207,7 +207,7 @@ may pass a GeoJSON file path directly. This code is shown for illustration
 only and is **not run** when building the vignette.
 
 ```{r eval=FALSE}
-segs <- roads_to_segments("roads_madison.geojson")
+segs <- roads_to_segments("roads_cstat.geojson")
 ```
 
 Within the package itself (examples and vignettes), `.rda` datasets are used

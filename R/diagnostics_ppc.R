@@ -85,3 +85,26 @@ ppc_summary <- function(fit,
   class(out) <- "traffic_ppc"
   out
 }
+
+
+
+
+#' @method print traffic_ppc
+#' @export
+print.traffic_ppc <- function(x, ...) {
+  cat("Posterior predictive checks\n")
+  cat("Draws:", x$n_draws, "\n\n")
+
+  for (nm in names(x$observed)) {
+    cat(nm, ":\n")
+    print(c(
+      observed = x$observed[[nm]],
+      p_value = x$p_values[[nm]]
+    ))
+    cat("\n")
+  }
+
+  invisible(x)
+}
+
+

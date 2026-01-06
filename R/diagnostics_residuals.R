@@ -6,6 +6,8 @@
 #' @param object A `traffic_fit` object.
 #' @param type Residual type: "raw", "structured", or "unstructured".
 #' @param ... Unused.
+#' @importFrom stats quantile
+#' @importFrom stats sd
 #' @method residuals traffic_fit
 #'
 #' @return Numeric vector of residuals.

@@ -2,6 +2,8 @@
 
 S3method(print,trafficCAR_fit)
 S3method(print,traffic_fit)
+S3method(residuals,traffic_fit)
+S3method(summary,traffic_residuals)
 export(augment_roads)
 export(build_adjacency)
 export(build_network)

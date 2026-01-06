@@ -6,6 +6,7 @@
 #' @param type Residual type: "raw" or "unstructured".
 #' @param nsim Number of permutations for permutation test.
 #' @param method "analytic" or "permutation".
+#' @importFrom stats residuals
 #'
 #' @return An object of class `traffic_moran`.
 #' @export

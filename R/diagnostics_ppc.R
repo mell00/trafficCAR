@@ -6,6 +6,7 @@
 #' @param fit A `traffic_fit` object.
 #' @param stats Statistics to compute: "mean", "var", "tail".
 #' @param probs Tail probabilities for "tail" statistic.
+#' @importFrom stats var
 #'
 #' @return An object of class `traffic_ppc`.
 #' @export

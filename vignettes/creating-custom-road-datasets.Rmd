@@ -45,7 +45,7 @@ library(sf)
 
 Choose a city name or bounding box.
 
-```{r}
+```{r, eval = FALSE}
 city <- "College Station, Texas, USA"
 
 q <- opq(city) |>
@@ -56,7 +56,7 @@ osm <- osmdata_sf(q)
 
 Extract road geometries:
 
-```{r}
+```{r, eval = FALSE}
 roads <- osm$osm_lines
 ```
 
@@ -69,7 +69,7 @@ geometries.
 
 It is recommended to keep only a small number of attributes.
 
-```{r}
+```{r, eval = FALSE}
 roads <- roads[, c("highway", "name", "geometry")]
 unique(st_geometry_type(roads))
 ```
@@ -83,7 +83,7 @@ Only `LINESTRING` and `MULTILINESTRING` geometries are supported by
 
 Save the road network to a GeoJSON file.
 
-```{r}
+```{r, eval = FALSE}
 st_write(
   roads,
   "roads_cstat.geojson",
@@ -104,7 +104,7 @@ This file is:
 For regular use with `trafficCAR`, convert GeoJSON to `.rda`.
 This provides faster loading and avoids file I/O in examples.
 
-```{r}
+```{r, eval = FALSE}
 library(usethis)
 
 roads_cstat <- st_read("roads_cstat.geojson", quiet = TRUE)
@@ -119,7 +119,7 @@ data/roads_cstat.rda
 
 You can now load the dataset with:
 
-```{r}
+```{r, eval = FALSE}
 data(roads_cstat)
 ```
 
@@ -127,7 +127,7 @@ data(roads_cstat)
 
 ## Step 5: Use the dataset in trafficCAR
 
-```{r}
+```{r, eval = FALSE}
 library(trafficCAR)
 
 segs <- roads_to_segments(

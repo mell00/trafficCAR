@@ -6,6 +6,7 @@
 #' @param object A `traffic_fit` object.
 #' @param type Residual type: "raw", "structured", or "unstructured".
 #' @param ... Unused.
+#' @method residuals traffic_fit
 #'
 #' @return Numeric vector of residuals.
 #' @export
@@ -55,7 +56,7 @@ residuals.traffic_fit <- function(object,
 
 
 
-
+#' @method summary traffic_residuals
 #' @export
 summary.traffic_residuals <- function(object, ...) {
   c(

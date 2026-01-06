@@ -19,3 +19,19 @@ test_that("residuals compute correctly", {
   )
 })
 
+
+
+test_that("residuals carry correct metadata", {
+  fit <- list(
+    y = c(1, 2, 3),
+    mu = c(1.1, 1.9, 3.2),
+    x = c(0.2, -0.1, 0.0)
+  )
+  class(fit) <- "traffic_fit"
+
+  r <- residuals(fit, "raw")
+
+  expect_s3_class(r, "traffic_residuals")
+  expect_equal(attr(r, "type"), "raw")
+  expect_equal(attr(r, "n"), 3L)
+})

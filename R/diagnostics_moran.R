@@ -10,10 +10,10 @@
 #' @return An object of class `traffic_moran`.
 #' @export
 moran_residuals <- function(fit,
-                            type = c("raw", "unstructured"),
+                            type = c("raw", "structured", "unstructured"),
                             nsim = 199,
                             method = c("analytic", "permutation")) {
-  type <- match.arg(type)
+  type <- match.arg(type, c("raw", "structured", "unstructured"))
   method <- match.arg(method)
 
   if (is.null(fit$A)) stop("`fit` must contain adjacency matrix `A`.")

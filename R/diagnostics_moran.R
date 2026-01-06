@@ -81,3 +81,25 @@ moran_residuals <- function(fit,
   class(out) <- "traffic_moran"
   out
 }
+
+
+
+
+#' @method print traffic_moran
+#' @export
+print.traffic_moran <- function(x, ...) {
+  cat("Moran's I\n")
+  cat("Type:", x$type, "\n")
+  cat("I =", formatC(x$I, digits = 4), "\n")
+
+  if (x$method == "analytic") {
+    cat("E[I] =", formatC(x$expected, digits = 4), "\n")
+  } else {
+    cat("p-value =", formatC(x$p_value, digits = 4), "\n")
+    cat("Permutations:", x$nsim, "\n")
+  }
+
+  invisible(x)
+}
+
+

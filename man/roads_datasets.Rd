@@ -3,24 +3,27 @@
 \docType{data}
 \name{roads_datasets}
 \alias{roads_datasets}
+\alias{roads_small}
+\alias{roads_midsize}
+\alias{roads_cstat}
 \title{Example road network datasets}
 \format{
-An object of class `sf` with LINESTRING geometries.
+An object of class \code{sf}.
 }
 \description{
 A collection of example road network datasets provided as `sf` objects.
 These datasets are intended for demonstration, testing, and benchmarking.
 }
 \details{
-Each object contains LINESTRING road geometries suitable for use with
-`roads_to_segments()` and related functions.
+Each dataset contains LINESTRING road geometries suitable for use with
+\code{roads_to_segments()} and related functions.
 
 
 Included datasets:
 \describe{
-  \item{roads_small}{Small road network example.}
-  \item{roads_midsize}{Medium-sized road network example.}
-  \item{roads_madison}{Road network for Madison, WI.}
+  \item{roads_small}{Small example road network.}
+  \item{roads_midsize}{Medium-sized example road network.}
+  \item{roads_cstat}{Road network for College Station, TX.}
 }
 }
 \keyword{datasets}

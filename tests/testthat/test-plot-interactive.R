@@ -109,6 +109,18 @@ test_that("non-numeric mapped columns are rejected", {
 })
 
 
+test_that("edge cases do not error", {
+  sf_one <- .make_fake_sf(n = 1)
+  sf_one$predicted_mean <- 30
+  sf_one$relative_congestion <- 0
+
+  expect_silent(map_roads_interactive(sf_one))
+
+  expect_silent(map_roads_interactive_layers(sf_one,
+      values = c("predicted_speed", "relative_congestion")))
+})
+
+
 
 
 

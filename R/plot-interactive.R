@@ -122,37 +122,63 @@ map_roads_interactive_layers <- function(
     stop("No valid traffic measures requested.")
   }
 
-  m <- leaflet::leaflet(sf_aug) |>
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron)
+  # Internal group IDs (stable, simple strings)
+  group_ids <- values
 
-  for (value in values) {
-    spec <- .value_registry[[value]]
-    col  <- spec$column
-    lab  <- spec$label
+  # Human-readable labels (ONLY for display)
+  group_labels <- vapply(
+    values,
+    function(v) .value_registry[[v]]$label,
+    character(1)
+  )
+
+  m <- m <- leaflet::leaflet(sf_aug, width  = "100%", height = 800)
+  m <- leaflet::addProviderTiles(
+    m,
+    leaflet::providers$CartoDB.Positron
+  )
+
+  # Register groups using IDs
+  m <- leaflet::addLayersControl(
+    m,
+    overlayGroups = group_ids,
+    options = leaflet::layersControlOptions(collapsed = FALSE)
+  )
+
+  for (i in seq_along(values)) {
+    value <- values[i]
+    gid   <- group_ids[i]
+    lab   <- group_labels[i]
+    col   <- .value_registry[[value]]$column
 
     if (!col %in% names(sf_aug)) next
     vals <- sf_aug[[col]]
 
     pal <- leaflet::colorNumeric(
-      viridisLite::viridis(256),
-      domain = vals,
+      palette  = viridisLite::viridis(256),
+      domain   = vals,
       na.color = "#CCCCCC"
     )
 
-    m <- m |>
-      leaflet::addPolylines(
-        color = pal(vals),
-        weight = 4,
-        opacity = 0.9,
-        group = lab
-      )
+    m <- leaflet::addPolylines(
+      m,
+      data    = sf_aug,
+      color   = pal(vals),
+      weight  = 4,
+      opacity = 0.9,
+      group   = gid
+    )
+
+    m <- leaflet::addLegend(
+      m,
+      pal     = pal,
+      values  = vals,
+      title   = paste(lab),
+      group   = gid,
+      opacity = 1
+    )
+
   }
 
-  leaflet::addLayersControl(
-    m,
-    overlayGroups = vapply(values,
-                           function(v) .value_registry[[v]]$label,
-                           character(1)),
-    options = leaflet::layersControlOptions(collapsed = FALSE)
-  )
+  m
 }

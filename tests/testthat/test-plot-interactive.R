@@ -37,3 +37,13 @@ test_that("map_roads_interactive validates inputs", {
   expect_error(map_roads_interactive(sf_ok, engine = "plotly"), "leaflet")
 })
 
+
+test_that("map_roads_interactive_layers validates inputs", {
+  sf_ok <- .make_fake_sf()
+
+  expect_error(map_roads_interactive_layers(list()), "sf")
+
+  expect_error(map_roads_interactive_layers(sf_ok, values = "bad_value"),
+    "No valid traffic measures")
+})
+

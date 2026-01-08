@@ -12,3 +12,16 @@
     )
   )
 }
+
+
+
+test_that(".value_registry is well-formed", {
+  expect_true(is.list(.value_registry))
+  expect_true(all(c("column", "label") %in% names(.value_registry[[1]])))
+
+  for (v in names(.value_registry)) {
+    expect_true(is.character(.value_registry[[v]]$column))
+    expect_true(is.character(.value_registry[[v]]$label))
+    expect_length(.value_registry[[v]]$label, 1)
+  }
+})

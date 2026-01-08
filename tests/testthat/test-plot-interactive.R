@@ -61,3 +61,22 @@ test_that("interactive maps fail gracefully without leaflet", {
 })
 
 
+test_that("semantic values resolve to expected columns", {
+  sf_ok <- .make_fake_sf()
+
+  expect_silent(
+    map_roads_interactive(sf_ok, value = "predicted_speed")
+  )
+
+  expect_silent(
+    map_roads_interactive(sf_ok, value = "relative_congestion")
+  )
+
+  expect_silent(
+    map_roads_interactive_layers(
+      sf_ok, values = c("predicted_speed", "relative_congestion")
+    )
+  )
+})
+
+

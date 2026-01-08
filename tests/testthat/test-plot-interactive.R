@@ -98,5 +98,17 @@ test_that("missing required columns are handled correctly", {
 })
 
 
+test_that("non-numeric mapped columns are rejected", {
+  sf_bad <- .make_fake_sf()
+  sf_bad$predicted_mean <- as.character(sf_bad$predicted_mean)
+
+  expect_error(
+    map_roads_interactive(sf_bad, value = "predicted_speed"),
+    "numeric"
+  )
+})
+
+
+
 
 

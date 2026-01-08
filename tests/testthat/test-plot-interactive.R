@@ -128,4 +128,14 @@ test_that("no legacy value_col API remains", {
 })
 
 
+test_that("legend titles are plain character scalars", {
+  labs <- vapply(
+    names(.value_registry),
+    function(v) .value_registry[[v]]$label,
+    character(1)
+  )
+
+  expect_true(all(vapply(labs, is.character, logical(1))))
+  expect_true(all(nchar(labs) > 0))
+})
 

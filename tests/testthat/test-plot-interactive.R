@@ -139,3 +139,16 @@ test_that("legend titles are plain character scalars", {
   expect_true(all(nchar(labs) > 0))
 })
 
+
+test_that("interactive maps return leaflet widgets", {
+  sf_ok <- .make_fake_sf()
+
+  skip_if_not_installed("leaflet")
+
+  m1 <- map_roads_interactive(sf_ok)
+  m2 <- map_roads_interactive_layers(sf_ok)
+
+  expect_true(inherits(m1, "leaflet"))
+  expect_true(inherits(m2, "leaflet"))
+})
+

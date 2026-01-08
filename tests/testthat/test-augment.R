@@ -106,8 +106,9 @@ test_that("augment_roads handles NULL beta and extreme spatial effects", {
 
 
 
-test_that("augment_roads log back-transform never negative", {
+test_that("augment_roads log back-transform never produces negative predictions", {
   tf <- .make_fake_traffic_fit(n = 4, p = 1, S = 25)
+
   tf$transform_meta <- list(
     inv = function(mu) pmax(exp(mu) - 1e-6, 0),
     inv_interval = function(lo, hi) c(
@@ -116,11 +117,16 @@ test_that("augment_roads log back-transform never negative", {
     )
   )
 
-  tf$fit$draws$x <- matrix(rnorm(25 * 4, mean = -20, sd = 0.2), 25, 4)
+  tf$fit$draws$x <- matrix(
+    rnorm(25 * 4, mean = -20, sd = 0.2),
+    25, 4
+  )
 
   out <- augment_roads(tf, data.frame(segment_id = 1:4))
-  expect_true(all(out$fitted_mean >= 0))
-  expect_true(all(out$fitted_lo >= 0))
-  expect_true(all(out$fitted_hi >= 0))
+
+  expect_true(all(out$predicted_mean >= 0))
+  expect_true(all(out$predicted_lo >= 0))
+  expect_true(all(out$predicted_hi >= 0))
 })
+
 

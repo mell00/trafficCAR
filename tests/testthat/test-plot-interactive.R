@@ -25,3 +25,15 @@ test_that(".value_registry is well-formed", {
     expect_length(.value_registry[[v]]$label, 1)
   }
 })
+
+
+test_that("map_roads_interactive validates inputs", {
+  sf_ok <- .make_fake_sf()
+
+  expect_error(map_roads_interactive(list()), "sf object")
+
+  expect_error(map_roads_interactive(sf_ok, value = "bad_value"), "arg")
+
+  expect_error(map_roads_interactive(sf_ok, engine = "plotly"), "leaflet")
+})
+

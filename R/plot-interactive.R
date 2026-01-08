@@ -1,35 +1,58 @@
-#' Interactive map of road-segment values
+
+
+.value_registry <- list(
+  predicted_speed = list(
+    column = "mu_mean",
+    label  = "Predicted speed (km/h)"
+  ),
+  predicted_volume = list(
+    column = "mu_mean",
+    label  = "Predicted traffic volume"
+  ),
+  relative_congestion = list(
+    column = "relative_congestion",
+    label  = "Relative congestion (vs city average)"
+  )
+)
+
+
+
+
+
+#' Interactive map of road-segment traffic measures
 #'
-#' Creates a simple interactive map for road segments with a numeric value
-#' (e.g. posterior mean speed, spatial effect).
+#' Displays standard traffic quantities such as predicted speed,
+#' predicted volume, or relative congestion on an interactive map.
 #'
 #' @param sf_aug An `sf` object returned by `augment_roads()`.
-#' @param value_col Character scalar giving the name of a numeric column to map.
+#' @param value Character scalar. One of:
+#'   `"predicted_speed"`, `"predicted_volume"`, `"relative_congestion"`.
 #' @param engine Currently only `"leaflet"` is supported.
 #'
-#' @return An interactive map widget.
+#' @return A leaflet widget.
 #' @export
-#'
-#' @examples
-#' \dontrun{
-#' map_roads_interactive(roads_aug, "mu_mean")
-#' }
-map_roads_interactive <- function(sf_aug, value_col, engine = "leaflet") {
+map_roads_interactive <- function(sf_aug,
+                                  value = c("predicted_speed",
+                                            "predicted_volume",
+                                            "relative_congestion"),
+                                  engine = "leaflet") {
   if (!inherits(sf_aug, "sf")) {
     stop("`sf_aug` must be an sf object.")
   }
 
-  if (!is.character(value_col) || length(value_col) != 1) {
-    stop("`value_col` must be a single character string.")
+  value <- match.arg(value)
+
+  spec <- .value_registry[[value]]
+  col  <- spec$column
+  lab  <- spec$label
+
+  if (!col %in% names(sf_aug)) {
+    stop("Required column `", col, "` not found in `sf_aug`.")
   }
 
-  if (!value_col %in% names(sf_aug)) {
-    stop("`value_col` not found in `sf_aug`.")
-  }
-
-  vals <- sf_aug[[value_col]]
+  vals <- sf_aug[[col]]
   if (!is.numeric(vals)) {
-    stop("`value_col` must refer to a numeric column.")
+    stop("Mapped column must be numeric.")
   }
 
   if (engine != "leaflet") {
@@ -39,7 +62,6 @@ map_roads_interactive <- function(sf_aug, value_col, engine = "leaflet") {
   if (!requireNamespace("leaflet", quietly = TRUE)) {
     stop("Package 'leaflet' is required for interactive maps.")
   }
-
   if (!requireNamespace("viridisLite", quietly = TRUE)) {
     stop("Package 'viridisLite' is required for color scales.")
   }
@@ -50,10 +72,9 @@ map_roads_interactive <- function(sf_aug, value_col, engine = "leaflet") {
     na.color = "#CCCCCC"
   )
 
-  # Tooltip text
   tooltip <- paste0(
     "<strong>Segment:</strong> ", sf_aug$seg_id,
-    "<br><strong>", value_col, ":</strong> ",
+    "<br><strong>", lab, ":</strong> ",
     signif(vals, 4)
   )
 
@@ -68,10 +89,11 @@ map_roads_interactive <- function(sf_aug, value_col, engine = "leaflet") {
     leaflet::addLegend(
       pal = pal,
       values = vals,
-      title = value_col,
+      title = lab,
       opacity = 1
     )
 }
+
 
 
 

@@ -47,3 +47,17 @@ test_that("map_roads_interactive_layers validates inputs", {
     "No valid traffic measures")
 })
 
+
+test_that("interactive maps fail gracefully without leaflet", {
+  sf_ok <- .make_fake_sf()
+
+  if (requireNamespace("leaflet", quietly = TRUE)) {
+    skip("leaflet is installed; skipping missing-dependency test")
+  }
+
+  expect_error(map_roads_interactive(sf_ok), "leaflet")
+
+  expect_error(map_roads_interactive_layers(sf_ok), "leaflet")
+})
+
+

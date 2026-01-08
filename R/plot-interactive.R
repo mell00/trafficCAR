@@ -31,11 +31,11 @@
 #'
 #' @return A leaflet widget.
 #' @export
-map_roads_interactive <- function(sf_aug,
-                                  value = c("predicted_speed",
-                                            "predicted_volume",
-                                            "relative_congestion"),
-                                  engine = "leaflet") {
+map_roads_interactive <- function(
+    sf_aug,
+    value = c("predicted_speed", "predicted_volume", "relative_congestion"),
+    engine = "leaflet"
+) {
   if (!inherits(sf_aug, "sf")) {
     stop("`sf_aug` must be an sf object.")
   }
@@ -67,8 +67,8 @@ map_roads_interactive <- function(sf_aug,
   }
 
   pal <- leaflet::colorNumeric(
-    palette = viridisLite::viridis(256),
-    domain = vals,
+    palette  = viridisLite::viridis(256),
+    domain   = vals,
     na.color = "#CCCCCC"
   )
 
@@ -78,20 +78,35 @@ map_roads_interactive <- function(sf_aug,
     signif(vals, 4)
   )
 
-  leaflet::leaflet(sf_aug) |>
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) |>
-    leaflet::addPolylines(
-      color = ~pal(vals),
-      weight = 4,
-      opacity = 0.9,
-      label = lapply(tooltip, htmltools::HTML)
-    ) |>
-    leaflet::addLegend(
-      pal = pal,
-      values = vals,
-      title = lab,
-      opacity = 1
-    )
+  m <- leaflet::leaflet(
+    sf_aug,
+    width  = "100%",
+    height = 800
+  )
+
+  m <- leaflet::addProviderTiles(
+    m,
+    leaflet::providers$CartoDB.Positron
+  )
+
+  m <- leaflet::addPolylines(
+    m,
+    color   = pal(vals),
+    weight  = 4,
+    opacity = 0.9,
+    label   = lapply(tooltip, htmltools::HTML)
+  )
+
+  m <- leaflet::addLegend(
+    m,
+    pal     = pal,
+    values  = vals,
+    title   = paste(lab),
+    opacity = 1,
+    position = "bottomright"
+  )
+
+  m
 }
 
 

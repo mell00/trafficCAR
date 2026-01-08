@@ -2,19 +2,21 @@
 % Please edit documentation in R/plot-interactive.R
 \name{map_roads_interactive_layers}
 \alias{map_roads_interactive_layers}
-\title{Interactive map with multiple road layers}
+\title{Interactive map with multiple standard traffic layers}
 \usage{
-map_roads_interactive_layers(sf_aug, layers)
+map_roads_interactive_layers(
+  sf_aug,
+  values = c("predicted_speed", "relative_congestion")
+)
 }
 \arguments{
 \item{sf_aug}{sf object with road geometries}
 
-\item{layers}{named character vector:
-names = layer labels, values = column names}
+\item{values}{Character vector of traffic measures to include.}
 }
 \value{
 leaflet widget
 }
 \description{
-Interactive map with multiple road layers
+Interactive map with multiple standard traffic layers
 }

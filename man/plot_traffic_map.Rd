@@ -4,12 +4,12 @@
 \alias{plot_traffic_map}
 \title{Quick map helper for augmented roads}
 \usage{
-plot_traffic_map(roads_aug, fill = "fitted_mean")
+plot_traffic_map(roads_aug, fill = c("predicted_mean", "relative_congestion"))
 }
 \arguments{
 \item{roads_aug}{sf object returned by augment_roads()}
 
-\item{fill}{character; column name to color by (default "fitted_mean")}
+\item{fill}{one of "predicted_mean" or "relative_congestion"}
 }
 \description{
 Quick map helper for augmented roads

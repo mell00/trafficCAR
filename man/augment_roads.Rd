@@ -2,23 +2,25 @@
 % Please edit documentation in R/augment.R
 \name{augment_roads}
 \alias{augment_roads}
-\title{Augment an sf roads object with posterior summaries}
+\title{Augment roads with predicted traffic quantities}
 \usage{
 augment_roads(fit, roads, probs = c(0.025, 0.975), keep_geometry = TRUE)
 }
 \arguments{
 \item{fit}{a `traffic_fit` object from `fit_traffic()`.}
 
-\item{roads}{an sf object (or data.frame) with a segment id column matching `fit$segment_id_col`.}
+\item{roads}{an sf object or data.frame with a segment id column.}
 
 \item{probs}{length-2 numeric for equal-tail intervals.}
 
-\item{keep_geometry}{logical; if FALSE returns a data.frame even if sf.}
+\item{keep_geometry}{logical; if FALSE drops sf geometry.}
 }
 \value{
-`roads` with added columns.
+roads with added columns:
+  predicted_mean, predicted_lo, predicted_hi,
+  relative_congestion
 }
 \description{
-Adds posterior mean and interval columns for latent effect x and fitted mean mu.
-If the model used a log transform, also adds back-transformed summaries.
+Adds predicted traffic outcomes (e.g. speed or volume) and
+relative congestion measures to a road network.
 }

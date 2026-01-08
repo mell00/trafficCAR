@@ -2,26 +2,26 @@
 % Please edit documentation in R/plot-interactive.R
 \name{map_roads_interactive}
 \alias{map_roads_interactive}
-\title{Interactive map of road-segment values}
+\title{Interactive map of road-segment traffic measures}
 \usage{
-map_roads_interactive(sf_aug, value_col, engine = "leaflet")
+map_roads_interactive(
+  sf_aug,
+  value = c("predicted_speed", "predicted_volume", "relative_congestion"),
+  engine = "leaflet"
+)
 }
 \arguments{
 \item{sf_aug}{An `sf` object returned by `augment_roads()`.}
 
-\item{value_col}{Character scalar giving the name of a numeric column to map.}
+\item{value}{Character scalar. One of:
+`"predicted_speed"`, `"predicted_volume"`, `"relative_congestion"`.}
 
 \item{engine}{Currently only `"leaflet"` is supported.}
 }
 \value{
-An interactive map widget.
+A leaflet widget.
 }
 \description{
-Creates a simple interactive map for road segments with a numeric value
-(e.g. posterior mean speed, spatial effect).
-}
-\examples{
-\dontrun{
-map_roads_interactive(roads_aug, "mu_mean")
-}
+Displays standard traffic quantities such as predicted speed,
+predicted volume, or relative congestion on an interactive map.
 }

@@ -121,6 +121,11 @@ test_that("edge cases do not error", {
 })
 
 
+test_that("no legacy value_col API remains", {
+  expect_false(
+    any(grepl("value_col", capture.output(print(map_roads_interactive))))
+  )
+})
 
 
 

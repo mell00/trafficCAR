@@ -97,19 +97,18 @@ map_roads_interactive <- function(sf_aug,
 
 
 
-#' Interactive map with multiple road layers
+#' Interactive map with multiple standard traffic layers
 #'
 #' @param sf_aug sf object with road geometries
-#' @param layers named character vector:
-#'   names = layer labels, values = column names
+#' @param values Character vector of traffic measures to include.
 #'
 #' @return leaflet widget
 #' @export
-map_roads_interactive_layers <- function(sf_aug, layers) {
+map_roads_interactive_layers <- function(
+    sf_aug,
+    values = c("predicted_speed", "relative_congestion")
+) {
   if (!inherits(sf_aug, "sf")) stop("`sf_aug` must be sf.")
-  if (!is.character(layers) || is.null(names(layers))) {
-    stop("`layers` must be a named character vector.")
-  }
 
   if (!requireNamespace("leaflet", quietly = TRUE)) {
     stop("Package 'leaflet' is required.")
@@ -118,34 +117,42 @@ map_roads_interactive_layers <- function(sf_aug, layers) {
     stop("Package 'viridisLite' is required.")
   }
 
+  values <- intersect(values, names(.value_registry))
+  if (length(values) == 0) {
+    stop("No valid traffic measures requested.")
+  }
+
   m <- leaflet::leaflet(sf_aug) |>
     leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron)
 
-  for (nm in names(layers)) {
-    col <- layers[[nm]]
+  for (value in values) {
+    spec <- .value_registry[[value]]
+    col  <- spec$column
+    lab  <- spec$label
+
     if (!col %in% names(sf_aug)) next
-    if (!is.numeric(sf_aug[[col]])) next
+    vals <- sf_aug[[col]]
 
     pal <- leaflet::colorNumeric(
       viridisLite::viridis(256),
-      domain = sf_aug[[col]],
+      domain = vals,
       na.color = "#CCCCCC"
     )
 
     m <- m |>
       leaflet::addPolylines(
-        color = pal(sf_aug[[col]]),
+        color = pal(vals),
         weight = 4,
         opacity = 0.9,
-        group = nm
+        group = lab
       )
   }
 
   leaflet::addLayersControl(
     m,
-    overlayGroups = names(layers),
+    overlayGroups = vapply(values,
+                           function(v) .value_registry[[v]]$label,
+                           character(1)),
     options = leaflet::layersControlOptions(collapsed = FALSE)
   )
 }
-
-

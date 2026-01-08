@@ -2,11 +2,11 @@
 
 .value_registry <- list(
   predicted_speed = list(
-    column = "mu_mean",
+    column = "predicted_mean",
     label  = "Predicted speed (km/h)"
   ),
   predicted_volume = list(
-    column = "mu_mean",
+    column = "predicted_mean",
     label  = "Predicted traffic volume"
   ),
   relative_congestion = list(

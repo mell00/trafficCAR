@@ -152,3 +152,14 @@ test_that("interactive maps return leaflet widgets", {
   expect_true(inherits(m2, "leaflet"))
 })
 
+
+test_that("interactive maps set explicit widget dimensions", {
+  sf_ok <- .make_fake_sf()
+
+  skip_if_not_installed("leaflet")
+
+  m <- map_roads_interactive(sf_ok)
+
+  expect_true(!is.null(m$width))
+  expect_true(!is.null(m$height))
+})

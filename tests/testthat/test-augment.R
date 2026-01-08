@@ -41,7 +41,6 @@ test_that("extract_gaussian_draws accepts fit_car structure", {
   expect_equal(nrow(d$x), length(d$sigma2))
 })
 
-
 test_that("extract_gaussian_draws rejects malformed inputs", {
   expect_error(.extract_gaussian_draws(list(draws = NULL)), "draws")
 
@@ -59,21 +58,25 @@ test_that("extract_gaussian_draws rejects malformed inputs", {
 })
 
 
-test_that("augment_roads joins and adds posterior columns", {
+
+test_that("augment_roads joins and adds traffic-interpretable columns", {
   tf <- .make_fake_traffic_fit(n = 5, p = 1, S = 30)
   roads <- data.frame(segment_id = 1:5)
 
   out <- augment_roads(tf, roads)
 
   expect_true(all(c(
-    "x_mean","x_lo","x_hi",
-    "mu_mean","mu_lo","mu_hi",
-    "fitted_mean","fitted_lo","fitted_hi"
+    "predicted_mean",
+    "predicted_lo",
+    "predicted_hi",
+    "relative_congestion"
   ) %in% names(out)))
 
   expect_equal(nrow(out), nrow(roads))
-  expect_true(all(is.finite(out$fitted_mean)))
+  expect_true(all(is.finite(out$predicted_mean)))
+  expect_true(all(is.finite(out$relative_congestion)))
 })
+
 
 
 test_that("augment_roads rejects adversarial inputs", {

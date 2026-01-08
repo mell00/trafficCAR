@@ -2,18 +2,22 @@
 % Please edit documentation in R/plot_static.R
 \name{plot_roads_static}
 \alias{plot_roads_static}
-\title{Static map of road-segment values}
+\title{Static map of road-segment traffic measures}
 \usage{
-plot_roads_static(sf_aug, value_col)
+plot_roads_static(
+  sf_aug,
+  value = c("predicted_speed", "predicted_volume", "relative_congestion")
+)
 }
 \arguments{
 \item{sf_aug}{sf object with road geometries}
 
-\item{value_col}{numeric column to plot}
+\item{value}{One of "predicted_speed", "predicted_volume",
+or "relative_congestion"}
 }
 \value{
 ggplot object
 }
 \description{
-Static map of road-segment values
+Static map of road-segment traffic measures
 }

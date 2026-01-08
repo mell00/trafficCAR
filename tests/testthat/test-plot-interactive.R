@@ -80,3 +80,23 @@ test_that("semantic values resolve to expected columns", {
 })
 
 
+test_that("missing required columns are handled correctly", {
+  sf_bad <- .make_fake_sf()
+  sf_bad$predicted_mean <- NULL
+
+  expect_error(
+    map_roads_interactive(sf_bad, value = "predicted_speed"),
+    "Required column"
+  )
+
+  # multi-layer silently skips missing layers
+  expect_silent(
+    map_roads_interactive_layers(sf_bad,
+      values = c("predicted_speed", "relative_congestion")
+    )
+  )
+})
+
+
+
+

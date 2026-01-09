@@ -49,3 +49,25 @@ test_that("plot_roads_static errors if required mapped column missing", {
     ignore.case = FALSE
   )
 })
+
+
+
+test_that("plot_roads_static errors if mapped column is not numeric", {
+  reg <- get(".value_registry", envir = asNamespace("trafficCAR"))
+  spec <- reg[["predicted_speed"]]
+  col  <- spec$column
+
+  sf_aug <- sf::st_sf(
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+  sf_aug[[col]] <- "not numeric"
+
+  expect_error(
+    trafficCAR::plot_roads_static(sf_aug, value = "predicted_speed"),
+    "numeric",
+    ignore.case = TRUE
+  )
+})

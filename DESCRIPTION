@@ -26,7 +26,8 @@ Imports:
     units,
     stats,
     graphics,
-    rlang
+    rlang,
+    posterior
 Suggests: 
     knitr,
     rmarkdown,

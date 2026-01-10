@@ -196,3 +196,28 @@ test_that("plot_observed_fitted handles n = 1 and constants", {
   expect_equal(p2$data$predicted, rep(7, 4))
 })
 
+
+test_that("plot_observed_fitted handles large inputs", {
+  skip_if_not_installed("ggplot2")
+
+  set.seed(1)
+  mu <- matrix(rnorm(300 * 2000), nrow = 300)
+
+  fit <- list(
+    draws = list(mu = mu),
+    outcome_col = "speed",
+    outcome_label = "Speed"
+  )
+  class(fit) <- "traffic_fit"
+
+  data <- data.frame(speed = rnorm(ncol(mu)))
+
+  p <- plot_observed_fitted(fit, data)
+  expect_equal(nrow(p$data), ncol(mu))
+})
+
+
+
+
+
+

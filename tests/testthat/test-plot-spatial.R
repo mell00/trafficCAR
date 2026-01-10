@@ -82,6 +82,10 @@ test_that("plot_relative_congestion returns ggplot with sf layer and gradient2 s
 })
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/origin/main
 test_that("plot_predicted rejects non-sf roads and missing geometry", {
   skip_if_not_installed("sf")
   skip_if_not_installed("ggplot2")
@@ -99,11 +103,15 @@ test_that("plot_predicted rejects non-sf roads and missing geometry", {
 
   roads <- sf::st_sf(
     segment_id = 1:3,
+<<<<<<< HEAD
     geometry = sf::st_sfc(
       sf::st_point(c(0, 0)),
       sf::st_point(c(1, 0)),
       sf::st_point(c(2, 0))
     ),
+=======
+    geometry = sf::st_sfc(sf::st_point(c(0, 0))),
+>>>>>>> refs/remotes/origin/main
     crs = 4326
   )
   roads_nogeo <- sf::st_drop_geometry(roads)
@@ -114,6 +122,7 @@ test_that("plot_predicted rejects non-sf roads and missing geometry", {
     ignore.case = TRUE
   )
 })
+<<<<<<< HEAD
 
 
 test_that("plot_relative_congestion rejects non-sf roads and missing geometry", {
@@ -151,3 +160,5 @@ test_that("plot_relative_congestion rejects non-sf roads and missing geometry", 
     ignore.case = TRUE
   )
 })
+=======
+>>>>>>> refs/remotes/origin/main

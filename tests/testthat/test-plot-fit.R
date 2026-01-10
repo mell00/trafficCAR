@@ -115,3 +115,23 @@ test_that("plot_observed_fitted validates outcome_label", {
     fixed = TRUE
   )
 })
+
+
+test_that("plot_observed_fitted errors on length mismatch", {
+  skip_if_not_installed("ggplot2")
+
+  fit <- list(
+    draws = list(mu = matrix(1, nrow = 5, ncol = 3)),
+    outcome_col = "speed",
+    outcome_label = "Speed"
+  )
+  class(fit) <- "traffic_fit"
+
+  data <- data.frame(speed = c(10, 20))
+
+  expect_error(
+    plot_observed_fitted(fit, data),
+    "Length mismatch:",
+    fixed = TRUE
+  )
+})

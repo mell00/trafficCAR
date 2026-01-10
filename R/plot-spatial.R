@@ -36,8 +36,12 @@
 #' @return ggplot
 #' @export
 plot_predicted <- function(fit, roads) {
-  pred <- colMeans(fit$draws$mu)
+  .validate_traffic_fit(fit)
+  .validate_sf_roads(roads)
 
+  .validate_draw_matrix(fit$draws$mu, "mu", n_segments = nrow(roads))
+
+  pred <- colMeans(fit$draws$mu)
   roads$predicted <- pred
 
   ggplot2::ggplot(roads) +
@@ -46,11 +50,9 @@ plot_predicted <- function(fit, roads) {
       linewidth = 1
     ) +
     ggplot2::scale_color_viridis_c(
-      name = fit$outcome_label
+      name = if (is.null(fit$outcome_label)) "" else fit$outcome_label
     )
 }
-
-
 
 #' Plot relative congestion on road network
 #'
@@ -61,8 +63,20 @@ plot_predicted <- function(fit, roads) {
 #' @return ggplot
 #' @export
 plot_relative_congestion <- function(fit, roads) {
+  .validate_traffic_fit(fit)
+  .validate_sf_roads(roads)
+
+  .validate_draw_matrix(fit$draws$x, "x", n_segments = nrow(roads))
+
   x_mean <- colMeans(fit$draws$x)
-  rel <- x_mean / sd(x_mean)
+  s <- stats::sd(x_mean)
+
+  if (!is.finite(s) || s <= 0) {
+    warning("Relative congestion is constant (sd=0); returning zeros.")
+    rel <- rep(0, length(x_mean))
+  } else {
+    rel <- x_mean / s
+  }
 
   roads$relative_congestion <- rel
 

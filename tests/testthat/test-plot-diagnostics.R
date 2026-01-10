@@ -81,3 +81,8 @@ test_that("plot_mcmc_diagnostics requires posterior", {
   expect_silent(suppressWarnings(plot_mcmc_diagnostics(fit)))
 })
 
+
+test_that("plot_mcmc_diagnostics errors on non-numeric draws", {
+  fit <- structure(list(draws = list(mu = letters[1:10])), class = "traffic_fit")
+  expect_error(plot_mcmc_diagnostics(fit), "numeric|double|ess", ignore.case = TRUE)
+})

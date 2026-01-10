@@ -104,6 +104,7 @@ test_that("plot_predicted rejects non-sf roads and missing geometry", {
       sf::st_point(c(1, 0)),
       sf::st_point(c(2, 0))
     ),
+    geometry = sf::st_sfc(sf::st_point(c(0, 0))),
     crs = 4326
   )
   roads_nogeo <- sf::st_drop_geometry(roads)
@@ -151,3 +152,4 @@ test_that("plot_relative_congestion rejects non-sf roads and missing geometry", 
     ignore.case = TRUE
   )
 })
+

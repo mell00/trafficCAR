@@ -33,6 +33,7 @@
 #'
 #' @param fit traffic_fit
 #' @param roads sf with segment_id
+#' @importFrom rlang .data
 #' @return ggplot
 #' @export
 plot_predicted <- function(fit, roads) {
@@ -60,6 +61,7 @@ plot_predicted <- function(fit, roads) {
 #'
 #' @param fit traffic_fit
 #' @param roads sf
+#' @importFrom rlang .data
 #' @return ggplot
 #' @export
 plot_relative_congestion <- function(fit, roads) {

@@ -170,3 +170,29 @@ test_that("plot_observed_fitted tolerates NA/Inf values", {
   p <- expect_warning(plot_observed_fitted(fit, data), regexp = NA)
   expect_s3_class(p, "ggplot")
 })
+
+
+test_that("plot_observed_fitted handles n = 1 and constants", {
+  skip_if_not_installed("ggplot2")
+
+  fit1 <- list(
+    draws = list(mu = matrix(5, nrow = 3, ncol = 1)),
+    outcome_col = "speed",
+    outcome_label = "Speed"
+  )
+  class(fit1) <- "traffic_fit"
+
+  p1 <- plot_observed_fitted(fit1, data.frame(speed = 42))
+  expect_equal(p1$data$predicted, 5)
+
+  fit2 <- list(
+    draws = list(mu = matrix(7, nrow = 10, ncol = 4)),
+    outcome_col = "speed",
+    outcome_label = "Speed"
+  )
+  class(fit2) <- "traffic_fit"
+
+  p2 <- plot_observed_fitted(fit2, data.frame(speed = rep(7, 4)))
+  expect_equal(p2$data$predicted, rep(7, 4))
+})
+

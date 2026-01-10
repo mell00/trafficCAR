@@ -98,3 +98,16 @@ test_that("plot_mcmc_diagnostics errors on non-finite values (NA/NaN/Inf)", {
   expect_error(plot_mcmc_diagnostics(fit3), "finite", ignore.case = TRUE)
 })
 
+
+test_that("plot_mcmc_diagnostics handles constant draws (may yield NA ESS)", {
+  fit <- structure(list(draws = list(mu = rep(1, 200))), class = "traffic_fit")
+
+  out <- suppressWarnings(plot_mcmc_diagnostics(fit))
+
+  expect_equal(nrow(out), 1)
+  expect_identical(out$parameter, "mu")
+
+  # posterior::ess_basic may return NA for constant chains; that's acceptable.
+  expect_true(is.na(out$ess) || (is.finite(out$ess) && out$ess >= 0))
+})
+

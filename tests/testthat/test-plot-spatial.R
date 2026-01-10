@@ -219,3 +219,81 @@ test_that("plot_relative_congestion rejects invalid fit structure / missing draw
 })
 
 
+
+test_that("plot_predicted rejects draw matrices with wrong dimensions or non-numeric", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("ggplot2")
+
+  roads <- sf::st_sf(
+    segment_id = 1:3,
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 0, 1, 1), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 1, 2, 1), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+
+  fit_wrong_n <- structure(
+    list(draws = list(mu = matrix(rnorm(8), nrow = 2, ncol = 4)), outcome_label = "y"),
+    class = "traffic_fit"
+  )
+
+  expect_error(
+    plot_predicted(fit_wrong_n, roads),
+    "length|dimension|nrow|segments",
+    ignore.case = TRUE
+  )
+
+  fit_nonnum <- structure(
+    list(draws = list(mu = matrix(letters[1:6], nrow = 2)), outcome_label = "y"),
+    class = "traffic_fit"
+  )
+
+  expect_error(
+    plot_predicted(fit_nonnum, roads),
+    "numeric",
+    ignore.case = TRUE
+  )
+})
+
+test_that("plot_relative_congestion rejects draw matrices with wrong dimensions or non-numeric", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("ggplot2")
+
+  roads <- sf::st_sf(
+    segment_id = 1:3,
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 0, 1, 1), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 1, 2, 1), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+
+  fit_wrong_n <- structure(
+    list(draws = list(x = matrix(rnorm(8), nrow = 2, ncol = 4)), outcome_label = "y"),
+    class = "traffic_fit"
+  )
+
+  expect_error(
+    plot_relative_congestion(fit_wrong_n, roads),
+    "length|dimension|nrow|segments",
+    ignore.case = TRUE
+  )
+
+  fit_nonnum <- structure(
+    list(draws = list(x = matrix(letters[1:6], nrow = 2)), outcome_label = "y"),
+    class = "traffic_fit"
+  )
+
+  expect_error(
+    plot_relative_congestion(fit_nonnum, roads),
+    "numeric",
+    ignore.case = TRUE
+  )
+})
+
+
+
+

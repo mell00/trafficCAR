@@ -335,4 +335,33 @@ test_that("non-finite values in draws are rejected (NA/Inf/NaN)", {
 })
 
 
+test_that("constant x implies sd=0 is handled (no NaN/Inf in mapped column)", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("ggplot2")
 
+  roads <- sf::st_sf(
+    segment_id = 1:3,
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 0, 1, 1), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 1, 2, 1), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+
+  x_const <- matrix(rep(5, 12), nrow = 4, ncol = 3)
+  fit <- structure(
+    list(draws = list(x = x_const), outcome_label = "y"),
+    class = "traffic_fit"
+  )
+
+  expect_warning(
+    p <- plot_relative_congestion(fit, roads),
+    "sd|zero|constant",
+    ignore.case = TRUE
+  )
+
+  built <- ggplot2::ggplot_build(p)
+  expect_true("colour" %in% names(built$data[[1]]))
+  expect_true(all(is.finite(built$data[[1]]$colour)))
+})

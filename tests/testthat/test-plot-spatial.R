@@ -38,3 +38,46 @@ test_that("plot_predicted returns a ggplot with an sf layer and viridis scale", 
   expect_true(length(p$scales$scales) >= 1)
   expect_match(p$scales$scales[[1]]$name, "Predicted speed")
 })
+
+
+
+test_that("plot_relative_congestion returns ggplot with sf layer and gradient2 scale", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("ggplot2")
+
+  roads <- sf::st_sf(
+    segment_id = 1:3,
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 0, 1, 1), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 1, 2, 1), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+
+  x <- matrix(
+    c(-1, 0, 1,
+      -2, 0, 2,
+      -1, 0, 1,
+      -3, 0, 3),
+    nrow = 4, byrow = TRUE
+  )
+
+  fit <- structure(
+    list(draws = list(x = x), outcome_label = "ignored"),
+    class = "traffic_fit"
+  )
+
+  roads_copy <- roads
+  p <- plot_relative_congestion(fit, roads)
+
+  expect_s3_class(p, "ggplot")
+  expect_false("relative_congestion" %in% names(roads_copy))
+
+  expect_true(length(p$layers) >= 1)
+  expect_true(inherits(p$layers[[1]]$geom, "GeomSf"))
+
+  expect_true(length(p$scales$scales) >= 1)
+  expect_match(p$scales$scales[[1]]$name, "Relative congestion")
+})
+

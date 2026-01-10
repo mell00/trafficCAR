@@ -123,3 +123,17 @@ test_that("plot_mcmc_diagnostics handles very short chains (may yield NA ESS)", 
   expect_true(all(ok))
 })
 
+
+test_that("plot_mcmc_diagnostics supports matrix draws per parameter", {
+  # posterior::ess_basic should accept array-like inputs w/o crashing
+  mat <- matrix(rnorm(400), nrow = 200, ncol = 2)
+  fit <- structure(list(draws = list(mu = mat)), class = "traffic_fit")
+
+  out <- plot_mcmc_diagnostics(fit)
+
+  expect_equal(nrow(out), 1)
+  expect_identical(out$parameter, "mu")
+  expect_true(is.finite(out$ess))
+  expect_true(out$ess >= 0)
+})
+

@@ -152,3 +152,21 @@ test_that("plot_observed_fitted accepts vector mu (single draw)", {
   p <- plot_observed_fitted(fit, data)
   expect_equal(p$data$predicted, c(5, 6, 7))
 })
+
+
+test_that("plot_observed_fitted tolerates NA/Inf values", {
+  skip_if_not_installed("ggplot2")
+
+  fit <- list(
+    draws = list(mu = matrix(c(NA_real_, Inf,
+                               1, -Inf), nrow = 2, byrow = TRUE)),
+    outcome_col = "speed",
+    outcome_label = "Speed"
+  )
+  class(fit) <- "traffic_fit"
+
+  data <- data.frame(speed = c(NA_real_, Inf))
+
+  p <- expect_warning(plot_observed_fitted(fit, data), regexp = NA)
+  expect_s3_class(p, "ggplot")
+})

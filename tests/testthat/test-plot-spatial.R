@@ -295,5 +295,44 @@ test_that("plot_relative_congestion rejects draw matrices with wrong dimensions 
 })
 
 
+test_that("non-finite values in draws are rejected (NA/Inf/NaN)", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("ggplot2")
+
+  roads <- sf::st_sf(
+    segment_id = 1:3,
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 0, 1, 1), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 1, 2, 1), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+
+  mu_bad <- matrix(c(1, 2, NA, 4, 5, 6), nrow = 2, byrow = TRUE)
+  fit_mu_bad <- structure(
+    list(draws = list(mu = mu_bad), outcome_label = "y"),
+    class = "traffic_fit"
+  )
+
+  expect_error(
+    plot_predicted(fit_mu_bad, roads),
+    "finite|NA|Inf|NaN",
+    ignore.case = TRUE
+  )
+
+  x_bad <- matrix(c(1, 2, Inf, 4, 5, 6), nrow = 2, byrow = TRUE)
+  fit_x_bad <- structure(
+    list(draws = list(x = x_bad), outcome_label = "y"),
+    class = "traffic_fit"
+  )
+
+  expect_error(
+    plot_relative_congestion(fit_x_bad, roads),
+    "finite|NA|Inf|NaN",
+    ignore.case = TRUE
+  )
+})
+
 
 

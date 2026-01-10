@@ -111,3 +111,15 @@ test_that("plot_mcmc_diagnostics handles constant draws (may yield NA ESS)", {
   expect_true(is.na(out$ess) || (is.finite(out$ess) && out$ess >= 0))
 })
 
+
+test_that("plot_mcmc_diagnostics handles very short chains (may yield NA ESS)", {
+  fit <- structure(list(draws = list(mu = 1.0, tau = c(0.1, 0.2))), class = "traffic_fit")
+
+  out <- suppressWarnings(plot_mcmc_diagnostics(fit))
+
+  expect_equal(nrow(out), 2)
+
+  ok <- is.na(out$ess) | (is.finite(out$ess) & out$ess >= 0)
+  expect_true(all(ok))
+})
+

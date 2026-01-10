@@ -60,3 +60,9 @@ test_that("plot_mcmc_diagnostics works with a single parameter", {
   expect_true(is.finite(out$ess))
   expect_true(out$ess >= 0)
 })
+
+
+test_that("plot_mcmc_diagnostics rejects missing draws element", {
+  fit <- structure(list(), class = "traffic_fit")
+  expect_error(plot_mcmc_diagnostics(fit), "draws|\\$draws|subscript|NULL", ignore.case = TRUE)
+})

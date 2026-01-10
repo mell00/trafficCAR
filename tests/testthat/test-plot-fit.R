@@ -68,3 +68,30 @@ test_that("plot_observed_fitted validates draws and mu structure", {
   class(fit2) <- "traffic_fit"
   expect_error(plot_observed_fitted(fit2, data), "must be numeric", ignore.case = TRUE)
 })
+
+
+test_that("plot_observed_fitted validates outcome_col and data column presence", {
+  skip_if_not_installed("ggplot2")
+
+  base_fit <- list(
+    draws = list(mu = matrix(1, nrow = 2, ncol = 2)),
+    outcome_label = "Speed"
+  )
+  class(base_fit) <- "traffic_fit"
+
+  data <- data.frame(speed = c(1, 2))
+
+  base_fit$outcome_col <- NULL
+  expect_error(
+    plot_observed_fitted(base_fit, data),
+    "`fit$outcome_col` must be a non-empty character scalar",
+    fixed = TRUE
+  )
+
+  base_fit$outcome_col <- "missing"
+  expect_error(
+    plot_observed_fitted(base_fit, data),
+    "Required column `missing` not found in `data`.",
+    fixed = TRUE
+  )
+})

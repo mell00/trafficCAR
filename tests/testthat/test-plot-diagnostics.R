@@ -86,3 +86,15 @@ test_that("plot_mcmc_diagnostics errors on non-numeric draws", {
   fit <- structure(list(draws = list(mu = letters[1:10])), class = "traffic_fit")
   expect_error(plot_mcmc_diagnostics(fit), "numeric|double|ess", ignore.case = TRUE)
 })
+
+
+test_that("plot_mcmc_diagnostics errors on non-finite values (NA/NaN/Inf)", {
+  fit1 <- structure(list(draws = list(mu = c(rnorm(20), NA_real_))), class = "traffic_fit")
+  fit2 <- structure(list(draws = list(mu = c(rnorm(20), NaN))), class = "traffic_fit")
+  fit3 <- structure(list(draws = list(mu = c(rnorm(20), Inf))), class = "traffic_fit")
+
+  expect_error(plot_mcmc_diagnostics(fit1), "finite", ignore.case = TRUE)
+  expect_error(plot_mcmc_diagnostics(fit2), "finite", ignore.case = TRUE)
+  expect_error(plot_mcmc_diagnostics(fit3), "finite", ignore.case = TRUE)
+})
+

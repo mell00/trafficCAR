@@ -135,3 +135,20 @@ test_that("plot_observed_fitted errors on length mismatch", {
     fixed = TRUE
   )
 })
+
+
+test_that("plot_observed_fitted accepts vector mu (single draw)", {
+  skip_if_not_installed("ggplot2")
+
+  fit <- list(
+    draws = list(mu = c(5, 6, 7)),
+    outcome_col = "speed",
+    outcome_label = "Speed"
+  )
+  class(fit) <- "traffic_fit"
+
+  data <- data.frame(speed = c(10, 20, 30))
+
+  p <- plot_observed_fitted(fit, data)
+  expect_equal(p$data$predicted, c(5, 6, 7))
+})

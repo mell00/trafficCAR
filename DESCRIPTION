@@ -27,13 +27,13 @@ Imports:
     stats,
     graphics,
     rlang,
-    posterior
+    posterior,
+    ggplot2
 Suggests: 
     knitr,
     rmarkdown,
     microbenchmark,
     osmdata,
-    ggplot2,
     lwgeom,
     leaflet,
     viridisLite,

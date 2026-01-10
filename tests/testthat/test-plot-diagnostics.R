@@ -137,3 +137,18 @@ test_that("plot_mcmc_diagnostics supports matrix draws per parameter", {
   expect_true(out$ess >= 0)
 })
 
+
+test_that("plot_mcmc_diagnostics scales to many parameters w/o crashing", {
+  draws <- setNames(
+    replicate(200, rnorm(50), simplify = FALSE),
+    paste0("p", seq_len(200))
+  )
+  fit <- structure(list(draws = draws), class = "traffic_fit")
+
+  out <- suppressWarnings(plot_mcmc_diagnostics(fit))
+
+  expect_equal(nrow(out), 200)
+  expect_setequal(out$parameter, names(draws))
+  expect_true(all(is.finite(out$ess)))
+  expect_true(all(out$ess >= 0))
+})

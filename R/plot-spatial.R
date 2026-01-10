@@ -33,7 +33,6 @@
 #'
 #' @param fit traffic_fit
 #' @param roads sf with segment_id
-#' @importFrom rlang .data
 #' @return ggplot
 #' @export
 plot_predicted <- function(fit, roads) {
@@ -47,7 +46,7 @@ plot_predicted <- function(fit, roads) {
 
   ggplot2::ggplot(roads) +
     ggplot2::geom_sf(
-      ggplot2::aes(color = predicted),
+      ggplot2::aes(color = .data$predicted),
       linewidth = 1
     ) +
     ggplot2::scale_color_viridis_c(
@@ -61,7 +60,6 @@ plot_predicted <- function(fit, roads) {
 #'
 #' @param fit traffic_fit
 #' @param roads sf
-#' @importFrom rlang .data
 #' @return ggplot
 #' @export
 plot_relative_congestion <- function(fit, roads) {
@@ -84,7 +82,7 @@ plot_relative_congestion <- function(fit, roads) {
 
   ggplot2::ggplot(roads) +
     ggplot2::geom_sf(
-      ggplot2::aes(color = relative_congestion),
+      ggplot2::aes(color = .data$relative_congestion),
       linewidth = 1
     ) +
     ggplot2::scale_color_gradient2(

@@ -110,5 +110,26 @@ test_that("plot_roads_static returns a ggplot with expected layers and labels", 
 })
 
 
+test_that("plot_roads_static accepts NA values in mapped column", {
+  skip_if_not_installed("ggplot2")
+
+  reg <- get(".value_registry", envir = asNamespace("trafficCAR"))
+  spec <- reg[["predicted_speed"]]
+  col  <- spec$column
+
+  sf_aug <- sf::st_sf(
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(0, 1, 1, 1), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+  sf_aug[[col]] <- c(10, NA_real_)
+
+  expect_silent({
+    p <- trafficCAR::plot_roads_static(sf_aug, value = "predicted_speed")
+    expect_s3_class(p, "ggplot")
+  })
+})
 
 

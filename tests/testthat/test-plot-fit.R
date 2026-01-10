@@ -50,3 +50,21 @@ test_that("plot_observed_fitted validates fit class and data type", {
   )
 })
 
+
+test_that("plot_observed_fitted validates draws and mu structure", {
+  skip_if_not_installed("ggplot2")
+
+  data <- data.frame(speed = c(1, 2))
+
+  fit0 <- list(outcome_col = "speed", outcome_label = "Speed")
+  class(fit0) <- "traffic_fit"
+  expect_error(plot_observed_fitted(fit0, data), "`fit$draws` must be a list", fixed = TRUE)
+
+  fit1 <- list(draws = list(), outcome_col = "speed", outcome_label = "Speed")
+  class(fit1) <- "traffic_fit"
+  expect_error(plot_observed_fitted(fit1, data), "`fit$draws$mu` is required", fixed = TRUE)
+
+  fit2 <- list(draws = list(mu = "nope"), outcome_col = "speed", outcome_label = "Speed")
+  class(fit2) <- "traffic_fit"
+  expect_error(plot_observed_fitted(fit2, data), "must be numeric", ignore.case = TRUE)
+})

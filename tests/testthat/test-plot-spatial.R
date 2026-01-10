@@ -363,5 +363,14 @@ test_that("constant x implies sd=0 is handled (no NaN/Inf in mapped column)", {
 
   built <- ggplot2::ggplot_build(p)
   expect_true("colour" %in% names(built$data[[1]]))
-  expect_true(all(is.finite(built$data[[1]]$colour)))
+
+  # ggplot object stores the sf data with the computed column
+  expect_true("relative_congestion" %in% names(p$data))
+  expect_true(is.numeric(p$data$relative_congestion))
+  expect_true(all(is.finite(p$data$relative_congestion)))
+  expect_true(all(p$data$relative_congestion == 0))
+
 })
+
+
+

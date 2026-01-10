@@ -29,3 +29,23 @@ test_that("plot_mcmc_diagnostics is deterministic for fixed inputs", {
 
   expect_identical(out1, out2)
 })
+
+
+test_that("plot_mcmc_diagnostics handles empty draws", {
+  fit <- structure(list(draws = list()), class = "traffic_fit")
+
+  out <- plot_mcmc_diagnostics(fit)
+
+  expect_s3_class(out, "data.frame")
+  expect_equal(nrow(out), 0)
+  expect_true("ess" %in% names(out))
+  expect_true(all(out$ess >= 0))
+  expect_true(all(is.finite(out$ess)))
+
+  # parameter column is allowed to be absent for empty draws
+  if ("parameter" %in% names(out)) {
+    expect_type(out$parameter, "character")
+    expect_equal(length(out$parameter), 0)
+  }
+})
+

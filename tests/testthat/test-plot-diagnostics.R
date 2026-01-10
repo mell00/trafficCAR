@@ -66,3 +66,9 @@ test_that("plot_mcmc_diagnostics rejects missing draws element", {
   fit <- structure(list(), class = "traffic_fit")
   expect_error(plot_mcmc_diagnostics(fit), "draws|\\$draws|subscript|NULL", ignore.case = TRUE)
 })
+
+
+test_that("plot_mcmc_diagnostics errors when draws is not a list", {
+  fit <- structure(list(draws = rnorm(10)), class = "traffic_fit")
+  expect_error(plot_mcmc_diagnostics(fit), "must be a list", ignore.case = TRUE)
+})

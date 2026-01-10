@@ -373,4 +373,26 @@ test_that("constant x implies sd=0 is handled (no NaN/Inf in mapped column)", {
 })
 
 
+test_that("plot_predicted works when outcome_label is NULL/empty", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("ggplot2")
+
+  roads <- sf::st_sf(
+    segment_id = 1:2,
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 0, 1, 1), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+
+  mu <- matrix(c(1, 2, 3, 4), nrow = 2)
+  fit <- structure(
+    list(draws = list(mu = mu), outcome_label = NULL),
+    class = "traffic_fit"
+  )
+
+  expect_silent(p <- plot_predicted(fit, roads))
+  expect_s3_class(p, "ggplot")
+})
 

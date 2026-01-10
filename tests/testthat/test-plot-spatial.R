@@ -112,3 +112,31 @@ test_that("plot_predicted rejects non-sf roads and missing geometry", {
 })
 
 
+test_that("plot_relative_congestion rejects non-sf roads and missing geometry", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("ggplot2")
+
+  fit <- structure(
+    list(draws = list(x = matrix(rnorm(6), nrow = 2)), outcome_label = "y"),
+    class = "traffic_fit"
+  )
+
+  expect_error(
+    plot_relative_congestion(fit, data.frame(segment_id = 1:3)),
+    "sf|geometry",
+    ignore.case = TRUE
+  )
+
+  roads <- sf::st_sf(
+    segment_id = 1:3,
+    geometry = sf::st_sfc(sf::st_point(c(0, 0))),
+    crs = 4326
+  )
+  roads_nogeo <- sf::st_drop_geometry(roads)
+
+  expect_error(
+    plot_relative_congestion(fit, roads_nogeo),
+    "geometry|sf",
+    ignore.case = TRUE
+  )
+})

@@ -49,3 +49,14 @@ test_that("plot_mcmc_diagnostics handles empty draws", {
   }
 })
 
+
+test_that("plot_mcmc_diagnostics works with a single parameter", {
+  fit <- structure(list(draws = list(mu = rnorm(80))), class = "traffic_fit")
+
+  out <- plot_mcmc_diagnostics(fit)
+
+  expect_equal(nrow(out), 1)
+  expect_identical(out$parameter, "mu")
+  expect_true(is.finite(out$ess))
+  expect_true(out$ess >= 0)
+})

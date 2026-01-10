@@ -72,3 +72,12 @@ test_that("plot_mcmc_diagnostics errors when draws is not a list", {
   fit <- structure(list(draws = rnorm(10)), class = "traffic_fit")
   expect_error(plot_mcmc_diagnostics(fit), "must be a list", ignore.case = TRUE)
 })
+
+
+test_that("plot_mcmc_diagnostics requires posterior", {
+  skip_if_not_installed("posterior")
+
+  fit <- structure(list(draws = list(mu = rnorm(10))), class = "traffic_fit")
+  expect_silent(suppressWarnings(plot_mcmc_diagnostics(fit)))
+})
+

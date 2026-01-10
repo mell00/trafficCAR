@@ -18,3 +18,14 @@ test_that("plot_mcmc_diagnostics returns a data.frame with parameter + ess", {
   expect_true(all(is.finite(out$ess)))
   expect_true(all(out$ess >= 0))
 })
+
+
+test_that("plot_mcmc_diagnostics is deterministic for fixed inputs", {
+  set.seed(123)
+  fit <- structure(list(draws = list(a = rnorm(100), b = rnorm(100))), class = "traffic_fit")
+
+  out1 <- suppressWarnings(plot_mcmc_diagnostics(fit))
+  out2 <- suppressWarnings(plot_mcmc_diagnostics(fit))
+
+  expect_identical(out1, out2)
+})

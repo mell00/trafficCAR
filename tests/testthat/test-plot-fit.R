@@ -95,3 +95,23 @@ test_that("plot_observed_fitted validates outcome_col and data column presence",
     fixed = TRUE
   )
 })
+
+
+test_that("plot_observed_fitted validates outcome_label", {
+  skip_if_not_installed("ggplot2")
+
+  fit <- list(
+    draws = list(mu = matrix(1, nrow = 2, ncol = 2)),
+    outcome_col = "speed"
+  )
+  class(fit) <- "traffic_fit"
+
+  data <- data.frame(speed = c(1, 2))
+
+  fit$outcome_label <- NULL
+  expect_error(
+    plot_observed_fitted(fit, data),
+    "`fit$outcome_label` must be a non-empty character scalar",
+    fixed = TRUE
+  )
+})

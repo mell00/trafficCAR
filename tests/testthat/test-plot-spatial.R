@@ -153,3 +153,69 @@ test_that("plot_relative_congestion rejects non-sf roads and missing geometry", 
   )
 })
 
+
+test_that("plot_predicted rejects invalid fit structure / missing draws", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("ggplot2")
+
+  roads <- sf::st_sf(
+    segment_id = 1:2,
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 0, 1, 1), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+
+  expect_error(
+    plot_predicted(list(draws = list(mu = matrix(rnorm(4), nrow = 2))), roads),
+    "traffic_fit|fit",
+    ignore.case = TRUE
+  )
+
+  fit_bad <- structure(
+    list(draws = list(), outcome_label = "y"),
+    class = "traffic_fit"
+  )
+
+  expect_error(
+    plot_predicted(fit_bad, roads),
+    "mu|draws",
+    ignore.case = TRUE
+  )
+})
+
+
+
+test_that("plot_relative_congestion rejects invalid fit structure / missing draws", {
+  skip_if_not_installed("sf")
+  skip_if_not_installed("ggplot2")
+
+  roads <- sf::st_sf(
+    segment_id = 1:2,
+    geometry = sf::st_sfc(
+      sf::st_linestring(matrix(c(0, 0, 1, 0), ncol = 2, byrow = TRUE)),
+      sf::st_linestring(matrix(c(1, 0, 1, 1), ncol = 2, byrow = TRUE))
+    ),
+    crs = 4326
+  )
+
+  expect_error(
+    plot_relative_congestion(list(draws = list(x = matrix(rnorm(4), nrow = 2))), roads),
+    "traffic_fit|fit",
+    ignore.case = TRUE
+  )
+
+  fit_bad <- structure(
+    list(draws = list(), outcome_label = "y"),
+    class = "traffic_fit"
+  )
+
+  expect_error(
+    plot_relative_congestion(fit_bad, roads),
+    "x|draws",
+    ignore.case = TRUE
+  )
+})
+
+

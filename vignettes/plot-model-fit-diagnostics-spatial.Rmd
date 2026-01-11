@@ -111,7 +111,7 @@ make_plot_fit <- function(base_fit, X, outcome_col, outcome_label) {
     mu_draws <- beta_draws %*% t(X) + x_draws
   }
 
-  list(
+  plot_fit <- list(
     draws = list(
       mu = mu_draws,
       x = x_draws,
@@ -121,6 +121,9 @@ make_plot_fit <- function(base_fit, X, outcome_col, outcome_label) {
     outcome_col = outcome_col,
     outcome_label = outcome_label
   )
+
+  class(plot_fit) <- "traffic_fit"
+  plot_fit
 }
 
 plot_fit <- make_plot_fit(

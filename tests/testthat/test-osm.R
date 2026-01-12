@@ -141,3 +141,59 @@ test_that("fetch_osm_roads validates `layer` choices via match.arg()", {
     ignore.case = TRUE
   )
 })
+
+
+test_that("fetch_osm_roads validates `extra_tags` type and names", {
+  skip_if_not_installed("osmdata")
+
+  expect_error(
+    fetch_osm_roads(matrix(0, 2, 2), extra_tags = "name=foo"),
+    "`extra_tags` must be a named list",
+    fixed = TRUE
+  )
+
+  expect_error(
+    fetch_osm_roads(matrix(0, 2, 2), extra_tags = list("foo")),
+    "`extra_tags` must be a named list",
+    fixed = TRUE
+  )
+})
+
+
+test_that("fetch_osm_roads adds extra_tags as additional osm features", {
+  skip_if_not_installed("osmdata")
+  skip_if_not_installed("sf")
+
+  got_features <- list()
+
+  roads_sf <- sf::st_sf(
+    osm_id = 1,
+    geometry = sf::st_sfc(sf::st_linestring(rbind(c(0, 0), c(0, 1)))),
+    crs = 4326
+  )
+
+  local_mocked_bindings(
+    osm_opq = function(bbox_arg) structure(list(bbox = bbox_arg), class = "opq"),
+    osm_add_feature = function(q, key, value = NULL) {
+      got_features[[length(got_features) + 1L]] <<- list(key = key, value = value)
+      q
+    },
+    osm_sf = function(q, quiet = TRUE, ...) list(osm_lines = roads_sf),
+    .env = asNamespace("trafficCAR")
+  )
+
+  res <- fetch_osm_roads(
+    matrix(0, 2, 2),
+    key = "highway",
+    value = "primary",
+    extra_tags = list(name = "Main St", surface = c("asphalt", "concrete")),
+    layer = "osm_lines"
+  )
+
+  expect_s3_class(res, "sf")
+
+  keys <- vapply(got_features, `[[`, character(1), "key")
+  expect_true("highway" %in% keys)
+  expect_true("name" %in% keys)
+  expect_true("surface" %in% keys)
+})

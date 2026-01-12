@@ -18,9 +18,18 @@ status](https://img.shields.io/badge/devel-active-brightgreen.svg)](#)
 ## Overview
 
 `trafficCAR` is an R package for constructing conditional autoregressive
-(CAR) precision matrices on graph and road network data. The package is
-designed to support methodological and simulation-based work with
-intrinsic and proper CAR models defined on network structures.
+(CAR) precision matrices on graph and road network data. It is built for
+users seeking principled spatial dependence structures for linear
+networks (streets, paths, and segmented roadways) and end-to-end
+utilities for turning raw road geometries into model-ready
+adjacency/weight matrices.
+
+The package is designed to support methodological, simulation-based, and
+applied modeling workflows with intrinsic and proper CAR models defined
+on network structures. It includes helpers for turning
+LINESTRING/MULTILINESTRING features into stable segments, for building
+graph objects and sparse matrices, and for scaling or constraining CAR
+precision matrices to align with common spatial statistics conventions.
 
 Core functionality includes:
 
@@ -29,6 +38,10 @@ Core functionality includes:
 - Constructing adjacency and weight matrices
 
 - Generating ICAR and proper CAR precision matrices
+
+In addition, `trafficCAR` provides convenient wrappers and plotting
+utilities aimed at traffic and speed modeling, so you can fit CAR/ICAR
+models and immediately map latent effects back to a road network.
 
 ## What the package offers
 
@@ -64,6 +77,41 @@ Core functionality includes:
   topology (`simplify_roads()`), compute connected components for ICAR
   centering (`components_from_adjacency()`), and derive degree or
   row-standardized matrices used across the CAR constructors.
+
+## Typical workflow
+
+1.  **Prepare road geometries**: Clean and optionally simplify input
+    road data. Convert LINESTRING/MULTILINESTRING features into stable,
+    length-aware segments with `roads_to_segments()`.
+
+2.  **Build network structure**: Use `build_adjacency()` or
+    `build_network()` to produce adjacency/graph objects that encode
+    which road segments touch or intersect.
+
+3.  **Create weights/precision matrices**: Convert adjacency into binary
+    or row-standardized weights (`weights_from_adjacency()`), then build
+    ICAR or proper CAR precision matrices with `car_precision()` or
+    `intrinsic_car_precision()`.
+
+4.  **Fit models or simulate**: Fit Gaussian CAR/ICAR regression models
+    with `fit_car()` or `fit_traffic()`, or run simulations with
+    `sample_proper_car()` and `rmvnorm_prec()` for benchmarking and
+    model checking.
+
+5.  **Augment and visualize**: Attach fitted spatial effects back to the
+    road geometries (`augment_fit()` or `augment_traffic_fit()`) and
+    visualize results via static or interactive plotting helpers.
+
+## Data expectations
+
+- Road geometries should be LINESTRING or MULTILINESTRING features,
+  typically stored in `sf` objects.
+- Segment-level outcomes or covariates should align with the segments
+  produced by `roads_to_segments()` or with the graph indices used to
+  build adjacency/weight matrices.
+- For ICAR models, connected components are handled via
+  `components_from_adjacency()` and sum-to-zero constraints can be
+  applied with `icar_sum_to_zero()`.
 
 ## Installation
 

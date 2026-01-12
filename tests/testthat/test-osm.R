@@ -215,3 +215,27 @@ test_that("fetch_osm_roads errors when chosen layer is missing/NULL", {
     fixed = TRUE
   )
 })
+
+
+test_that("fetch_osm_roads errors when chosen layer has 0 rows", {
+  skip_if_not_installed("osmdata")
+  skip_if_not_installed("sf")
+
+  empty_roads <- sf::st_sf(
+    osm_id = integer(0),
+    geometry = sf::st_sfc(crs = 4326)
+  )
+
+  local_mocked_bindings(
+    osm_opq = function(bbox_arg) structure(list(bbox = bbox_arg), class = "opq"),
+    osm_add_feature = function(q, key, value = NULL) q,
+    osm_sf = function(q, quiet = TRUE, ...) list(osm_lines = empty_roads),
+    .env = asNamespace("trafficCAR")
+  )
+
+  expect_error(
+    fetch_osm_roads(matrix(0, 2, 2), layer = "osm_lines"),
+    "No road geometries returned",
+    fixed = TRUE
+  )
+})

@@ -1,5 +1,12 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.RData$
+^\.Rhistory$
+^\.Ruserdata$
+^\.DS_Store$
+^\.git$
+^\.gitignore$
+^\.\.Rcheck$
 ^README\.Rmd$
 ^LICENSE\.md$
 ^data-raw$

@@ -130,3 +130,14 @@ test_that("fetch_osm_roads accepts bbox object input and does not call getbb()",
   expect_identical(got_bbox, bbox)
   expect_identical(getbb_called, 0L)
 })
+
+
+test_that("fetch_osm_roads validates `layer` choices via match.arg()", {
+  skip_if_not_installed("osmdata")
+
+  expect_error(
+    fetch_osm_roads(matrix(0, 2, 2), layer = "not_a_layer"),
+    "should be one of",
+    ignore.case = TRUE
+  )
+})

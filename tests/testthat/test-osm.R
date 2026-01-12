@@ -197,3 +197,21 @@ test_that("fetch_osm_roads adds extra_tags as additional osm features", {
   expect_true("name" %in% keys)
   expect_true("surface" %in% keys)
 })
+
+
+test_that("fetch_osm_roads errors when chosen layer is missing/NULL", {
+  skip_if_not_installed("osmdata")
+
+  local_mocked_bindings(
+    osm_opq = function(bbox_arg) structure(list(bbox = bbox_arg), class = "opq"),
+    osm_add_feature = function(q, key, value = NULL) q,
+    osm_sf = function(q, quiet = TRUE, ...) list(osm_lines = NULL),
+    .env = asNamespace("trafficCAR")
+  )
+
+  expect_error(
+    fetch_osm_roads(matrix(0, 2, 2), layer = "osm_lines"),
+    "No road geometries returned",
+    fixed = TRUE
+  )
+})

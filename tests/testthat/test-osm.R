@@ -239,3 +239,33 @@ test_that("fetch_osm_roads errors when chosen layer has 0 rows", {
     fixed = TRUE
   )
 })
+
+
+test_that("fetch_osm_roads propagates bbox/key/value failures", {
+  skip_if_not_installed("osmdata")
+
+  local_mocked_bindings(
+    osm_opq = function(bbox_arg) stop("bad bbox", call. = FALSE),
+    .env = asNamespace("trafficCAR")
+  )
+
+  bbox_bad <- matrix(c(NA_real_, Inf, -Inf, 0), nrow = 2)
+
+  expect_error(
+    fetch_osm_roads(bbox_bad),
+    "bad bbox",
+    fixed = TRUE
+  )
+
+  local_mocked_bindings(
+    osm_opq = function(bbox_arg) structure(list(bbox = bbox_arg), class = "opq"),
+    osm_add_feature = function(q, key, value = NULL) stop("bad feature", call. = FALSE),
+    .env = asNamespace("trafficCAR")
+  )
+
+  expect_error(
+    fetch_osm_roads(matrix(0, 2, 2), key = 123, value = list("x")),
+    "bad feature",
+    fixed = TRUE
+  )
+})

@@ -12,7 +12,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![Development
 status](https://img.shields.io/badge/devel-active-brightgreen.svg)](#)
 [![R \>=
-4.1](https://img.shields.io/badge/R-%3E%3D%204.1-blue.svg)](https://www.r-project.org/)
+3.5](https://img.shields.io/badge/R-%3E%3D%203.5-blue.svg)](https://www.r-project.org/)
 <!-- badges: end -->
 
 ## Overview

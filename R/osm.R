@@ -31,7 +31,7 @@ fetch_osm_roads <- function(place,
     if (length(place) != 1L) {
       stop("`place` must be a single place name or a bounding box object.")
     }
-    bbox <- osmdata::getbb(place)
+    bbox <- osm_getbb(place)
     if (is.null(bbox)) {
       stop("Unable to resolve `place` to a bounding box: ", place)
     }
@@ -41,20 +41,21 @@ fetch_osm_roads <- function(place,
 
   layer <- match.arg(layer)
 
-  q <- osmdata::opq(bbox = bbox)
-  q <- osmdata::add_osm_feature(q, key = key, value = value)
+  q <- osm_opq(bbox = bbox)
+  q <- osm_add_feature(q, key = key, value = value)
 
   if (!is.null(extra_tags)) {
     if (!is.list(extra_tags) || is.null(names(extra_tags))) {
       stop("`extra_tags` must be a named list.")
     }
     for (tag_name in names(extra_tags)) {
-      q <- osmdata::add_osm_feature(q, key = tag_name, value = extra_tags[[tag_name]])
+      q <- osm_add_feature(q, key = tag_name, value = extra_tags[[tag_name]])
     }
   }
 
-  osm <- osmdata::osmdata_sf(q, quiet = quiet, ...)
+  osm <- osm_sf(q, quiet = quiet, ...)
   roads <- osm[[layer]]
+
 
   if (is.null(roads) || nrow(roads) == 0L) {
     stop("No road geometries returned for the supplied query.")

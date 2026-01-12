@@ -9,6 +9,8 @@ Authors@R: c(
       role = c("aut", "cre")
     )
   )
+Author: Madison Ell [aut, cre]
+Maintainer: Madison Ell <mell@stat.tamu.edu>
 Description: Tools for simulating and modeling traffic flow on road networks
     using spatial conditional autoregressive (CAR) models. The package
     represents road systems as graphs derived from OpenStreetMap data and

@@ -11,68 +11,86 @@
 #' @param b0 numeric length p prior mean
 #' @param B0 positive definite p x p prior covariance
 #'
-#' @importFrom stats rgamma
+#' @importFrom stats rnorm
 #' @return numeric length p beta draw
 #' @keywords internal
 update_beta_gaussian <- function(y, X, x, sigma2, b0, B0) {
-  # basic type checks
+  ## basic type checks
   if (!is.numeric(y)) stop("`y` must be numeric.")
   if (typeof(y) != "double") stop("`y` must be a double vector.")
-  if (!is.matrix(X) || !is.numeric(X)) stop("`X` must be a numeric matrix.")
+  if (!is.matrix(X) || !is.numeric(X))
+    stop("`X` must be a numeric matrix.")
 
   n <- length(y)
-  if (nrow(X) != n) stop("`X` must have nrow(X) == length(y).")
+  if (nrow(X) != n)
+    stop("`X` must have nrow(X) == length(y).")
   p <- ncol(X)
 
-  if (!is.numeric(x) || length(x) != n) stop("`x` must be numeric length length(y).")
+  if (!is.numeric(x) || length(x) != n)
+    stop("`x` must be numeric length length(y).")
 
-  # finiteness checks
+  ## finiteness checks
   if (any(!is.finite(y))) stop("`y` must be finite.")
   if (any(!is.finite(x))) stop("`x` must be finite.")
   if (any(!is.finite(X))) stop("`X` must be finite.")
 
-  if (!is.numeric(sigma2) || length(sigma2) != 1 || !is.finite(sigma2) || sigma2 <= 0)
+  if (!is.numeric(sigma2) || length(sigma2) != 1 ||
+      !is.finite(sigma2) || sigma2 <= 0)
     stop("`sigma2` must be a positive scalar.")
 
-  if (!is.numeric(b0) || length(b0) != p) stop("`b0` must be numeric length ncol(X).")
+  if (!is.numeric(b0) || length(b0) != p)
+    stop("`b0` must be numeric length ncol(X).")
   if (!is.matrix(B0) || !is.numeric(B0) || any(dim(B0) != c(p, p)))
     stop("`B0` must be a numeric p x p matrix.")
-  if (!isTRUE(all.equal(B0, t(B0)))) stop("`B0` must be symmetric.")
-  B0_ch <- tryCatch(chol(B0), error = function(e) stop("`B0` must be positive definite."))
+  if (!isTRUE(all.equal(B0, t(B0))))
+    stop("`B0` must be symmetric.")
+
+  ## PD check only (no unused assignment)
+  tryCatch(
+    chol(B0),
+    error = function(e) stop("`B0` must be positive definite.")
+  )
 
   ## numeric stabilization: scale columns of X
-  # scale_j = max(abs(X[,j])) (avoid 0); keeps X_scaled in a safe range
   scale <- apply(abs(X), 2, max)
   scale[!is.finite(scale) | scale == 0] <- 1
   Xs <- sweep(X, 2, scale, "/")
 
-  # transform parameters beta_s = D beta, so X beta = (X D^{-1}) beta_s = Xs beta_s
-  # prior beta ~ N(b0, B0) => beta_s ~ N(D b0, D B0 D)
+  ## transform prior to scaled space
   b0s <- as.numeric(scale * b0)
-  Bs0 <- (scale * B0) * rep(scale, each = p)  # D %*% B0 %*% D, without forming D
+  Bs0 <- (scale * B0) * rep(scale, each = p)  # D %*% B0 %*% D
 
-  # prior precision in scaled space
-  if (!isTRUE(all.equal(Bs0, t(Bs0)))) Bs0 <- 0.5 * (Bs0 + t(Bs0))
-  Bs0_ch <- tryCatch(chol(Bs0), error = function(e) stop("Scaled `B0` not PD (numerical issue)."))
+  if (!isTRUE(all.equal(Bs0, t(Bs0))))
+    Bs0 <- 0.5 * (Bs0 + t(Bs0))
+
+  Bs0_ch <- tryCatch(
+    chol(Bs0),
+    error = function(e)
+      stop("Scaled `B0` not positive definite (numerical issue).")
+  )
   Bs0_inv <- chol2inv(Bs0_ch)
 
-  # posterior precision: Vinv = X'X/sigma2 + B0^{-1}
+  ## posterior precision
   XtX <- crossprod(Xs)
   Vinv <- XtX / sigma2 + Bs0_inv
-  if (!isTRUE(all.equal(Vinv, t(Vinv)))) Vinv <- 0.5 * (Vinv + t(Vinv))
+  if (!isTRUE(all.equal(Vinv, t(Vinv))))
+    Vinv <- 0.5 * (Vinv + t(Vinv))
 
-  R <- tryCatch(chol(Vinv), error = function(e) stop("Posterior covariance not invertible."))
+  R <- tryCatch(
+    chol(Vinv),
+    error = function(e) stop("Posterior covariance not invertible.")
+  )
 
-  # posterior mean m = Vinv^{-1} rhs, computed via Cholesky solves (no explicit inverse)
+  ## posterior mean via Cholesky solves
   rhs <- crossprod(Xs, (y - x)) / sigma2 + Bs0_inv %*% b0s
   m <- backsolve(R, forwardsolve(t(R), rhs))
 
-  # sample in scaled space: beta_s = m + R^{-T} z
+  ## sample in scaled space
   z <- rnorm(p)
   delta <- backsolve(R, z)
   beta_s <- as.numeric(m + delta)
 
-  # transform back: beta = D^{-1} beta_s
+  ## transform back
   as.numeric(beta_s / scale)
 }
 

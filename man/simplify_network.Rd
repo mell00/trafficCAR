@@ -13,7 +13,8 @@ simplify_network(net, keep_edge = c("first", "shortest"))
 unordered node pair. One of "first" or "shortest".}
 }
 \value{
-A network list with updated `edges`, `graph`, and `A` (and same `nodes`).
+A network list with updated `edges`, `graph`, and `A`
+  (and the same `nodes`).
 }
 \description{
 Simplify a built network object by removing parallel edges (and loops)

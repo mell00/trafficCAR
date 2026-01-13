@@ -10,3 +10,6 @@
 ^README\.Rmd$
 ^LICENSE\.md$
 ^data-raw$
+^trafficCAR\.Rcheck$
+^.*\.tar\.gz$
+

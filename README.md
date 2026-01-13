@@ -115,8 +115,13 @@ models and immediately map latent effects back to a road network.
 
 ## Installation
 
-The package is under development and not available on CRAN.  
-Install the development version from GitHub:
+You can install the released version of `trafficCAR` from CRAN:
+
+``` r
+install.packages("trafficCAR")
+```
+
+To install the development version from GitHub:
 
 ``` r
 # install.packages("devtools")

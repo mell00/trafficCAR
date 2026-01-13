@@ -100,7 +100,7 @@ update_beta_gaussian <- function(y, X, x, sigma2, b0, B0) {
 #'
 #' Prior: sigma2 ~ Inv-Gamma(a0, b0)  (shape a0, scale b0)
 #' Conditional: sigma2 | rest ~ Inv-Gamma(a0 + n/2, b0 + 0.5 * RSS)
-#'
+#' @importFrom stats rgamma
 #' @keywords internal
 update_sigma2_ig <- function(y, X, beta, x, a0, b0) {
   if (!is.numeric(y)) stop("`y` must be numeric.")

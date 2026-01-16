@@ -1,6 +1,6 @@
 Package: trafficCAR
 Type: Package
-Title: Conditional Autoregressive (CAR) Models for Traffic Flow on Road Networks
+Title: Conditional Autoregressive (CAR) Models for Traffic Flow on Road Networks Using 'OpenStreetMap'
 Version: 0.1.0
 Authors@R: c(
     person(
@@ -13,7 +13,8 @@ Author: Madison Ell [aut, cre]
 Maintainer: Madison Ell <mell@stat.tamu.edu>
 Description: Tools for simulating and modeling traffic flow on road networks
     using spatial conditional autoregressive (CAR) models. The package
-    represents road systems as graphs derived from OpenStreetMap data and
+    represents road systems as graphs derived from 'OpenStreetMap' data 
+    <https://www.openstreetmap.org/> and
     supports network-based spatial dependence, basic preprocessing, and
     visualization for spatio-temporal traffic analysis.
 License: MIT + file LICENSE

@@ -16,7 +16,7 @@ Description: Tools for simulating and modeling traffic flow on road networks
     represents road systems as graphs derived from 'OpenStreetMap' data 
     <https://www.openstreetmap.org/> and
     supports network-based spatial dependence, basic preprocessing, and
-    visualization for spatio-temporal traffic analysis.
+    visualization for spatial traffic analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

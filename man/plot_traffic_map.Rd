@@ -7,10 +7,15 @@
 plot_traffic_map(roads_aug, fill = c("predicted_mean", "relative_congestion"))
 }
 \arguments{
-\item{roads_aug}{sf object returned by augment_roads()}
+\item{roads_aug}{An `sf` object returned by [augment_roads()].}
 
-\item{fill}{one of "predicted_mean" or "relative_congestion"}
+\item{fill}{Character scalar. Which column of `roads_aug` to map.
+One of `"predicted_mean"` or `"relative_congestion"`.}
+}
+\value{
+An invisible copy of `roads_aug` (called for its plotting side effect).
 }
 \description{
-Quick map helper for augmented roads
+Plots road geometries colored by an augmented numeric column (e.g.,
+posterior mean predictions or relative congestion).
 }

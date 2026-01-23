@@ -163,8 +163,14 @@ augment_roads <- function(fit,
 
 #' Quick map helper for augmented roads
 #'
-#' @param roads_aug sf object returned by augment_roads()
-#' @param fill one of "predicted_mean" or "relative_congestion"
+#' Plots road geometries colored by an augmented numeric column (e.g.,
+#' posterior mean predictions or relative congestion).
+#'
+#' @param roads_aug An `sf` object returned by [augment_roads()].
+#' @param fill Character scalar. Which column of `roads_aug` to map.
+#'   One of `"predicted_mean"` or `"relative_congestion"`.
+#'
+#' @return An invisible copy of `roads_aug` (called for its plotting side effect).
 #' @export
 plot_traffic_map <- function(
     roads_aug,

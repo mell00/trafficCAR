@@ -9,6 +9,13 @@ plot_mcmc_diagnostics(fit)
 \arguments{
 \item{fit}{traffic_fit}
 }
+\value{
+A list with components:
+\describe{
+  \item{plot}{A `ggplot` object of diagnostic summaries.}
+  \item{summary}{A data frame with columns `parameter` and `ess`.}
+}
+}
 \description{
 MCMC diagnostic plots
 }

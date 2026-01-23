@@ -12,12 +12,11 @@
 #' Included datasets:
 #' \describe{
 #'   \item{roads_small}{Small example road network.}
-#'   \item{roads_midsize}{Medium-sized example road network.}
 #'   \item{roads_cstat}{Road network for College Station, TX.}
 #' }
 #'
 #' @name roads_datasets
-#' @aliases roads_small roads_midsize roads_cstat
+#' @aliases roads_small roads_cstat
 #' @docType data
 #' @keywords datasets
 NULL

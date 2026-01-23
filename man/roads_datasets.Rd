@@ -4,7 +4,6 @@
 \name{roads_datasets}
 \alias{roads_datasets}
 \alias{roads_small}
-\alias{roads_midsize}
 \alias{roads_cstat}
 \title{Example road network datasets}
 \format{
@@ -22,7 +21,6 @@ Each dataset contains LINESTRING road geometries suitable for use with
 Included datasets:
 \describe{
   \item{roads_small}{Small example road network.}
-  \item{roads_midsize}{Medium-sized example road network.}
   \item{roads_cstat}{Road network for College Station, TX.}
 }
 }

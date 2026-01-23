@@ -13,7 +13,8 @@ plot_mcmc_diagnostics(fit)
 A list with components:
 \describe{
   \item{plot}{A `ggplot` object of diagnostic summaries.}
-  \item{summary}{A data frame with columns `parameter` and `ess`.}
+  \item{summary}{A data frame with columns `parameter` and `ess`, giving
+  the effective sample size for each parameter..}
 }
 }
 \description{

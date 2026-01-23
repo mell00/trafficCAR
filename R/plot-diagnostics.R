@@ -7,7 +7,8 @@
 #' @return A list with components:
 #' \describe{
 #'   \item{plot}{A `ggplot` object of diagnostic summaries.}
-#'   \item{summary}{A data frame with columns `parameter` and `ess`.}
+#'   \item{summary}{A data frame with columns `parameter` and `ess`, giving
+#'   the effective sample size for each parameter..}
 #' }
 plot_mcmc_diagnostics <- function(fit) {
   if (is.null(fit$draws)) stop("`fit$draws` is missing.")

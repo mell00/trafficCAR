@@ -170,7 +170,8 @@ augment_roads <- function(fit,
 #' @param fill Character scalar. Which column of `roads_aug` to map.
 #'   One of `"predicted_mean"` or `"relative_congestion"`.
 #'
-#' @return An invisible copy of `roads_aug` (called for its plotting side effect).
+#' @return An invisible copy of `roads_aug`, returned as an `sf` object with the
+#'   augmented columns. The function is called for its plotting side effect.
 #' @export
 plot_traffic_map <- function(
     roads_aug,

@@ -13,7 +13,8 @@ plot_traffic_map(roads_aug, fill = c("predicted_mean", "relative_congestion"))
 One of `"predicted_mean"` or `"relative_congestion"`.}
 }
 \value{
-An invisible copy of `roads_aug` (called for its plotting side effect).
+An invisible copy of `roads_aug`, returned as an `sf` object with the
+  augmented columns. The function is called for its plotting side effect.
 }
 \description{
 Plots road geometries colored by an augmented numeric column (e.g.,

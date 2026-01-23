@@ -7,7 +7,7 @@ library(sf)
 
 # parameters
 place_name <- "Navasota, Texas"
-out_file <- "inst/extdata/roads.geojson"
+out_file <- "data-raw/roads.geojson"
 
 # download
 bbox <- getbb(place_name)

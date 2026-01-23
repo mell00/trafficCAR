@@ -39,7 +39,7 @@ prepare_roads_data <- function(
 }
 
 prepare_roads_data(
-  geojson_path = "inst/extdata/roads.geojson",
+  geojson_path = "data-raw/roads.geojson",
   name = "roads",
   simplify_tol = 5
 )

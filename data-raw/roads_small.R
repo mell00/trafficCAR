@@ -3,7 +3,7 @@ library(sf)
 library(usethis)
 
 roads_small <- st_read(
-  "inst/extdata/roads.geojson",
+  "data-raw/roads.geojson",
   quiet = TRUE
 )
 

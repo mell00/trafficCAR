@@ -32,12 +32,8 @@ precision matrices suitable for simulation or modeling.
 library(trafficCAR)
 library(Matrix)
 
-road_file <- system.file("extdata", "roads.geojson", package = "trafficCAR")
-if (!nzchar(road_file) || !file.exists(road_file)) {
-  stop("Example road data not found in inst/extdata.")
-}
-
-roads_sf <- sf::st_read(road_file, quiet = TRUE)
+data("roads_small", package = "trafficCAR")
+roads_sf <- roads_small
 ```
 
 ## Build a road network graph
@@ -69,10 +65,11 @@ Matrix::rowSums(W_row)[1:6]
 
 ```{r}
 Q_car <- car_precision(net$A, type = "proper", rho = 0.25, tau = 1)
-Q_icar <- intrinsic_car_precision(net$A, tau = 1, scale = TRUE)
+
+Q_icar <- intrinsic_car_precision(net$A, tau = 1, scale = FALSE)
 
 Q_car[1:6, 1:6]
-Matrix::rankMatrix(Q_icar)
+dim(Q_icar)
 ```
 
 ## Sampling from a CAR precision matrix
@@ -94,13 +91,15 @@ rendered without fitting a full model. In applied workflows, these values are
 produced automatically by `augment_roads()`.
 
 ```{r}
-road_file <- system.file("extdata", "roads.geojson", package = "trafficCAR")
-roads_sf <- sf::st_read(road_file, quiet = TRUE)
+roads_sf <- roads_small
 
-# mock predicted traffic values (stand-in for augment_roads() output)
+# mock traffic quantities (stand-in for augment_roads() output)
 set.seed(123)
+
+# many mapping helpers expect these standard columns
 roads_sf$predicted_mean <- runif(nrow(roads_sf), min = 20, max = 60)
-roads_sf$relative_congestion <- scale(runif(nrow(roads_sf)))[, 1]
+roads_sf$relative_congestion <- as.numeric(scale(runif(nrow(roads_sf))))
+
 has_leaflet <- requireNamespace("leaflet", quietly = TRUE) &&
   requireNamespace("viridisLite", quietly = TRUE)
 
@@ -129,6 +128,7 @@ if (has_leaflet) {
 - `weights_from_adjacency()` can produce binary or row-standardized weights.
 - `car_precision()` and `intrinsic_car_precision()` create sparse CAR/ICAR precision matrices.
 - Interactive helpers visualize predicted traffic levels and relative congestion.
+
 ## Further directions
 
 Planned extensions include:
@@ -136,3 +136,4 @@ Planned extensions include:
 - Poisson and negative binomial models for traffic volume
 - Layered interactive maps (raw vs modeled traffic)
 - Shiny applications for time-varying traffic data
+

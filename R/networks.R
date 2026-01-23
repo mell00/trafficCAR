@@ -40,12 +40,12 @@ build_network <- function(roads_sf,
   # clean + project (+ optional noding at intersections)
   roads <- roads_sf[!sf::st_is_empty(roads_sf), ]
   roads <- sf::st_transform(roads, crs_out)
-  roads <- sf::st_cast(roads, "LINESTRING")
+  roads <- suppressWarnings(sf::st_cast(roads, "LINESTRING"))
 
   if (node_intersections) {
     # GEOS union "nodes" the linework by splitting at crossings/intersections
     u <- sf::st_union(sf::st_geometry(roads))
-    roads_geom_noded <- sf::st_cast(u, "LINESTRING")
+    roads_geom_noded <- suppressWarnings(sf::st_cast(u, "LINESTRING"))
     roads <- sf::st_sf(geometry = roads_geom_noded)
     sf::st_crs(roads) <- sf::st_crs(crs_out)
   }

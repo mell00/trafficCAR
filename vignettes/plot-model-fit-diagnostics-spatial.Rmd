@@ -34,8 +34,8 @@ library(trafficCAR)
 library(sf)
 library(ggplot2)
 
-road_file <- system.file("extdata", "roads.geojson", package = "trafficCAR")
-roads <- sf::st_read(road_file, quiet = TRUE)
+data("roads_small", package = "trafficCAR")
+roads <- roads_small
 
 segments <- roads_to_segments(
   roads,
@@ -145,20 +145,44 @@ line if predictions match observed data on average.
 
 ## Plot MCMC diagnostics
 
-`plot_mcmc_diagnostics()` returns a data frame of effective sample size (ESS)
-values for each parameter. You can visualize the output with ggplot2.
+`plot_mcmc_diagnostics()` provides quick effective sample size (ESS) diagnostics.
+In current versions, it returns a list with a `ggplot` and a summary data frame.
+For robustness in vignette builds, the code below falls back to computing ESS
+directly if a plot/summary is not returned.
 
 ```{r, fig.width=7, fig.height=4}
-ess_df <- plot_mcmc_diagnostics(fit)
+diag <- plot_mcmc_diagnostics(plot_fit)
 
-ggplot(ess_df, aes(parameter, ess)) +
-  geom_col(fill = "steelblue") +
-  coord_flip() +
-  labs(
-    title = "Effective sample size by parameter",
-    x = NULL,
-    y = "ESS"
+if (is.list(diag) && !is.null(diag$plot)) {
+  diag$plot
+} else {
+  ess <- vapply(plot_fit$draws, posterior::ess_basic, numeric(1))
+  ess_df <- data.frame(
+    parameter = names(ess),
+    ess = as.numeric(ess),
+    row.names = NULL
   )
+
+  ggplot2::ggplot(ess_df, ggplot2::aes(parameter, ess)) +
+    ggplot2::geom_col() +
+    ggplot2::coord_flip() +
+    ggplot2::labs(
+      title = "Effective sample size by parameter",
+      x = NULL,
+      y = "ESS"
+    )
+}
+```
+
+If you want the underlying ESS table:
+
+```{r}
+if (is.list(diag) && !is.null(diag$summary)) {
+  head(diag$summary)
+} else {
+  ess <- vapply(plot_fit$draws, posterior::ess_basic, numeric(1))
+  head(data.frame(parameter = names(ess), ess = as.numeric(ess), row.names = NULL))
+}
 ```
 
 Low ESS values indicate slow mixing. Consider increasing the number of

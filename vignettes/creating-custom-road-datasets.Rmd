@@ -5,12 +5,16 @@ vignette: >
   %\VignetteIndexEntry{Creating Custom Road Datasets with trafficCAR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
----  
-  
+---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4,
+  dpi = 72,
+  fig.retina = 1
 )
 ```
 
@@ -23,13 +27,15 @@ You will learn how to:
 
 1. Obtain road network data for a city
 2. Save it as a GeoJSON file
-3. Convert the GeoJSON into an `.rda` dataset (recommended)
-4. Organize multiple city datasets (small / medium / large)
-5. Use the datasets with `trafficCAR`
+3. Convert the GeoJSON into an `.rda` dataset (recommended for packages)
+4. Save an `.rds` dataset (recommended for non-package projects)
+5. Organize multiple city datasets (small / medium / large)
+6. Use the datasets with `trafficCAR`
 
-The recommended workflow is:
+The recommended workflows are:
 
-> **GeoJSON (raw, portable) → `.rda` (fast, CRAN-friendly)**
+> **User project:** GeoJSON (raw) → `.rds` (fast)  
+> **R package:** GeoJSON (raw) → `.rda` (CRAN-friendly)
 
 ---
 
@@ -38,7 +44,8 @@ The recommended workflow is:
 A common source of road data is **OpenStreetMap**, accessed via the `osmdata`
 package.
 
-```{r}
+```{r, eval = FALSE}
+# install.packages(c("osmdata", "sf"))
 library(osmdata)
 library(sf)
 ```
@@ -60,18 +67,20 @@ Extract road geometries:
 roads <- osm$osm_lines
 ```
 
-At this point, `roads` is an `sf` object with LINESTRING/MULTILINESTRING
-geometries.
-
 ---
 
-## Step 2: Clean and inspect geometries
-
-It is recommended to keep only a small number of attributes.
+## Step 2: Clean, validate, and inspect geometries
 
 ```{r, eval = FALSE}
 roads <- roads[, c("highway", "name", "geometry")]
-unique(st_geometry_type(roads))
+roads <- sf::st_make_valid(roads)
+
+# Optional: simplify to reduce object size.
+# Note: dTolerance is in the units of your coordinate reference system (CRS).
+# For best results, consider transforming to a projected CRS with meter units first.
+roads <- sf::st_simplify(roads, dTolerance = 10)
+
+unique(sf::st_geometry_type(roads))
 ```
 
 Only `LINESTRING` and `MULTILINESTRING` geometries are supported by
@@ -79,12 +88,10 @@ Only `LINESTRING` and `MULTILINESTRING` geometries are supported by
 
 ---
 
-## Step 3: Write the dataset to GeoJSON
-
-Save the road network to a GeoJSON file.
+## Step 3: Write the dataset to GeoJSON (raw source)
 
 ```{r, eval = FALSE}
-st_write(
+sf::st_write(
   roads,
   "roads_cstat.geojson",
   delete_dsn = TRUE,
@@ -92,35 +99,26 @@ st_write(
 )
 ```
 
-This file is:
-- human-readable
-- portable outside R
-- suitable as a long-term raw data source
+---
+
+## Step 4A: Save as `.rds` (recommended for user projects)
+
+```{r, eval = FALSE}
+roads_cstat <- sf::st_read("roads_cstat.geojson", quiet = TRUE)
+
+saveRDS(roads_cstat, "roads_cstat.rds")
+roads_cstat <- readRDS("roads_cstat.rds")
+```
 
 ---
 
-## Step 4: Convert GeoJSON to `.rda` (recommended)
-
-For regular use with `trafficCAR`, convert GeoJSON to `.rda`.
-This provides faster loading and avoids file I/O in examples.
+## Step 4B: Convert GeoJSON to `.rda` (recommended for R packages)
 
 ```{r, eval = FALSE}
 library(usethis)
 
-roads_cstat <- st_read("roads_cstat.geojson", quiet = TRUE)
-use_data(roads_cstat, overwrite = TRUE)
-```
-
-This creates:
-
-```
-data/roads_cstat.rda
-```
-
-You can now load the dataset with:
-
-```{r, eval = FALSE}
-data(roads_cstat)
+roads_cstat <- sf::st_read("roads_cstat.geojson", quiet = TRUE)
+use_data(roads_cstat, overwrite = TRUE, compress = "xz")
 ```
 
 ---
@@ -130,6 +128,9 @@ data(roads_cstat)
 ```{r, eval = FALSE}
 library(trafficCAR)
 
+data(roads_small, package = "trafficCAR")
+roads_cstat <- roads_small
+
 segs <- roads_to_segments(
   roads_cstat,
   split_at_intersections = TRUE
@@ -138,51 +139,19 @@ segs <- roads_to_segments(
 adj <- build_adjacency(segs)
 ```
 
-The resulting segments and adjacency matrix can be used directly in
-model fitting.
-
 ---
 
-## Organizing multiple city datasets (small / medium / large)
+## Organizing multiple city datasets
 
-When working with multiple cities or scales, a consistent naming convention
-is strongly recommended.
-
-### Suggested naming scheme
-
-Use both **city** and **scale** in the object name:
+### Example directory layout (package development)
 
 ```
-roads_<city>_<scale>
-```
-
-Examples:
-- `roads_cstat_small`
-- `roads_cstat_medium`
-- `roads_cstat_large`
-- `roads_chicago_small`
-
-### Example directory layout
-
-```
-inst/extdata/
-  roads_cstat_small.geojson
-  roads_cstat_medium.geojson
-  roads_cstat_large.geojson
-
 data-raw/
+  roads_cstat_small.geojson
   roads_cstat_small.R
-  roads_cstat_medium.R
-  roads_cstat_large.R
-
 data/
   roads_cstat_small.rda
-  roads_cstat_medium.rda
-  roads_cstat_large.rda
 ```
-
-Each `data-raw/*.R` file should contain exactly one dataset and one call to
-`use_data()`.
 
 ### Example `data-raw` script
 
@@ -190,36 +159,31 @@ Each `data-raw/*.R` file should contain exactly one dataset and one call to
 library(sf)
 library(usethis)
 
-roads_cstat_small <- st_read(
-  "inst/extdata/roads_cstat_small.geojson",
+roads_cstat_small <- sf::st_read(
+  "data-raw/roads_cstat_small.geojson",
   quiet = TRUE
 )
 
-use_data(roads_cstat_small, overwrite = TRUE)
+use_data(roads_cstat_small, overwrite = TRUE, compress = "xz")
 ```
 
 ---
 
 ## Using external GeoJSON files directly
 
-The following example shows how a **user project** (outside the package)
-may pass a GeoJSON file path directly. This code is shown for illustration
-only and is **not run** when building the vignette.
-
 ```{r eval=FALSE}
-segs <- roads_to_segments("roads_cstat.geojson")
-```
+library(sf)
+library(trafficCAR)
 
-Within the package itself (examples and vignettes), `.rda` datasets are used
-to avoid file I/O and ensure CRAN compatibility.
+roads <- sf::st_read("roads_cstat.geojson", quiet = TRUE)
+segs <- roads_to_segments(roads)
+```
 
 ---
 
 ## Summary
 
 - Use **GeoJSON** as the authoritative raw format
-- Convert to **`.rda`** for routine use with `trafficCAR`
-- Adopt a clear naming scheme for multiple cities and scales
-- Load `.rda` datasets in examples and vignettes
-
-This workflow keeps projects reproducible, scalable, and CRAN-friendly.
+- Store raw files in `data-raw/` or outside the package
+- Use **`.rds`** for user projects and **`.rda`** for packages
+- Apply geometry simplification and xz compression to reduce size

@@ -2,7 +2,7 @@
 title: "trafficCAR Model Diagnostics and Checking"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{trafficCAR Model Diagnstics and Checking}
+  %\VignetteIndexEntry{trafficCAR Model Diagnostics and Checking}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---  

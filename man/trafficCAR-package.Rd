@@ -6,7 +6,7 @@
 \alias{trafficCAR-package}
 \title{trafficCAR: Bayesian CAR Models for Road-Segment Traffic}
 \description{
-Tools for simulating and modeling traffic flow on road networks using spatial conditional autoregressive (CAR) models. The package represents road systems as graphs derived from 'OpenStreetMap' data \url{https://www.openstreetmap.org/} and supports network-based spatial dependence, basic preprocessing, and visualization for spatio-temporal traffic analysis.
+Tools for simulating and modeling traffic flow on road networks using spatial conditional autoregressive (CAR) models. The package represents road systems as graphs derived from 'OpenStreetMap' data \url{https://www.openstreetmap.org/} and supports network-based spatial dependence, basic preprocessing, and visualization for spatial traffic analysis.
 }
 \author{
 \strong{Maintainer}: Madison Ell \email{mell@stat.tamu.edu}

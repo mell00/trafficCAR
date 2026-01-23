@@ -10,7 +10,13 @@ vignette: >
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 6,
+  fig.height = 4,
+  dpi = 72,
+  fig.retina = 1
 )
 ```
 
@@ -111,35 +117,42 @@ Q_icar_ridge <- Q_icar + Matrix::Diagonal(n_icar, x = eps)
 x_icar <- trafficCAR:::rmvnorm_prec(Q_icar_ridge)
 x_icar_centered <- x_icar - mean(x_icar)
 x_icar_centered
+```
 
+## A road-like graph example
+
+This section illustrates CAR/ICAR sampling on a graph resembling a small road network.
+If `sf` is available, we build an adjacency matrix from the bundled `roads_small` dataset.
+Otherwise, we fall back to a small synthetic graph.
+
+```{r}
 A_road <- NULL
 
-road_file <- system.file("extdata", "roads.geojson", package = "trafficCAR")
-has_roads <- nzchar(road_file) && file.exists(road_file)
-
 has_sf <- requireNamespace("sf", quietly = TRUE)
-has_igraph <- requireNamespace("igraph", quietly = TRUE)
 
-if (has_roads && has_sf && has_igraph) {
-  roads_sf <- sf::st_read(road_file, quiet = TRUE)
+if (has_sf) {
+  data("roads_small", package = "trafficCAR")
+  roads <- roads_small
 
-  # use build_network() if available; otherwise, adjacency must be created by user code.
-  has_build_network <- exists("build_network", where = asNamespace("trafficCAR"), inherits = FALSE)
+  segments <- roads_to_segments(
+    roads,
+    crs_m = 3857,
+    split_at_intersections = TRUE
+  )
 
-  if (has_build_network) {
-    net <- trafficCAR::build_network(roads_sf)
-
-    # try common outputs; otherwise construct from an edge list.
-    if (is.list(net) && "A" %in% names(net)) {
-      A_road <- net$A
-    } else if (is.list(net) && "adjacency" %in% names(net)) {
-      A_road <- net$adjacency
-    } else if (is.list(net) && "edges" %in% names(net)) {
-      edges <- net$edges
-      g <- igraph::graph_from_data_frame(edges[, c("from", "to")], directed = FALSE)
-      A_road <- igraph::as_adjacency_matrix(g, sparse = TRUE, attr = NULL)
-    }
+  if (nrow(segments) > 200) {
+    segments <- segments[seq_len(200), ]
   }
+
+  adjacency <- build_adjacency(segments, crs_m = 3857)
+
+  # Drop isolated segments to keep CAR models well-defined.
+  if (any(adjacency$isolates)) {
+    segments <- segments[!adjacency$isolates, ]
+    adjacency <- build_adjacency(segments, crs_m = 3857)
+  }
+
+  A_road <- adjacency$A
 }
 ```
 
@@ -185,6 +198,7 @@ Q_car_road <- car_precision(A_road, type = "proper", rho = 0.5, tau = 1)
 Q_icar_road <- car_precision(A_road, type = "icar", tau = 1)
 
 x_car_road <- trafficCAR:::rmvnorm_prec(Q_car_road)
+
 n_road <- nrow(Q_icar_road)
 eps <- 1e-6
 Q_icar_road_ridge <- Q_icar_road + Matrix::Diagonal(n_road, x = eps)
@@ -198,9 +212,5 @@ summary(x_icar_road)
 ## Summary
 
 - Proper CAR models yield positive definite precision matrices and support direct Gaussian sampling.
-
-
 - ICAR models yield singular precisions; sampled fields are defined up to an additive constant and are typically centered or constrained.
-
-
 - Sampling from sparse precision matrices avoids dense covariance calculations and scales well to larger graphs.

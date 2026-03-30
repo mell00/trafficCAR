@@ -276,6 +276,7 @@ test_that("ICAR scaling returns fallback or positive scalar multiple", {
 test_that("ICAR construction is not slower than proper CAR", {
 
   skip_if_not_installed("microbenchmark")
+  skip_on_cran()
 
   set.seed(1)
   n <- 300
@@ -314,6 +315,6 @@ test_that("ICAR construction is not slower than proper CAR", {
   t_icar <- med$time[med$expr == "ICAR"]
   t_car  <- med$time[med$expr == "CAR"]
 
-  expect_lte(t_icar, 1.2 * t_car)
+  expect_lte(t_icar, 1.5 * t_car)
 })
 

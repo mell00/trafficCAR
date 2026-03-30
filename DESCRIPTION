@@ -1,7 +1,7 @@
 Package: trafficCAR
 Type: Package
 Title: Bayesian CAR Models for Road-Segment Traffic
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person(
       "Madison", "Ell",
